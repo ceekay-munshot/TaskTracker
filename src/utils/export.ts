@@ -4,7 +4,7 @@
  * with KPI cards, data tables and native charts.
  */
 import pptxgen from 'pptxgenjs';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 
 /* ------------------------------------------------------------------ */
 /* Shared                                                             */
@@ -41,30 +41,122 @@ export interface ExcelSheet<T> {
   columns: ExportColumn<T>[];
 }
 
+/* CEO-grade styling — one cohesive Munshot indigo palette. */
+const XL = {
+  titleFill: '312E81',
+  headerFill: '4F46E5',
+  zebraFill: 'EEF2FF',
+  border: 'E2E8F0',
+  ink: '0F172A',
+  white: 'FFFFFF',
+};
+
+const THIN_BORDER = {
+  top: { style: 'thin', color: { rgb: XL.border } },
+  bottom: { style: 'thin', color: { rgb: XL.border } },
+  left: { style: 'thin', color: { rgb: XL.border } },
+  right: { style: 'thin', color: { rgb: XL.border } },
+};
+
 function sheetToWorksheet<T>(sheet: ExcelSheet<T>): XLSX.WorkSheet {
-  const header = sheet.columns.map((c) => c.header);
+  const headers = sheet.columns.map((c) => c.header);
   const body = sheet.rows.map((row) =>
     sheet.columns.map((c) => c.value(row)),
   );
-  const ws = XLSX.utils.aoa_to_sheet([header, ...body]);
+  const lastCol = Math.max(0, sheet.columns.length - 1);
+
+  // Row 0: title banner · Row 1: column headers · Row 2+: data rows.
+  const titleRow = headers.map((_, i) =>
+    i === 0 ? `MUNSHOT OS    ·    ${sheet.name}` : '',
+  );
+  const aoa: (string | number)[][] = [titleRow, headers, ...body];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const lastRow = aoa.length - 1;
+
+  // Title banner spans every column.
+  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: lastCol } }];
+
+  // Column widths sized to their content.
   ws['!cols'] = sheet.columns.map((c) => ({
     wch: Math.min(
-      52,
+      60,
       Math.max(
-        c.header.length + 2,
-        ...sheet.rows.map((r) => String(c.value(r)).length + 2),
-        10,
+        c.header.length + 4,
+        ...sheet.rows.map((r) => String(c.value(r)).length + 4),
+        12,
       ),
     ),
   }));
+
+  // Tall banner + header, comfortable data rows.
+  ws['!rows'] = aoa.map((_, r) => ({
+    hpt: r === 0 ? 30 : r === 1 ? 22 : 18,
+  }));
+
+  // Filter dropdowns on the header row + data.
   if (body.length > 0) {
     ws['!autofilter'] = {
       ref: XLSX.utils.encode_range({
-        s: { r: 0, c: 0 },
-        e: { r: body.length, c: sheet.columns.length - 1 },
+        s: { r: 1, c: 0 },
+        e: { r: lastRow, c: lastCol },
       }),
     };
   }
+
+  // Style every cell in the used range.
+  const cells = ws as Record<string, any>;
+  for (let r = 0; r <= lastRow; r++) {
+    for (let c = 0; c <= lastCol; c++) {
+      const addr = XLSX.utils.encode_cell({ r, c });
+      if (!cells[addr]) cells[addr] = { t: 's', v: '' };
+      const cell = cells[addr];
+
+      if (r === 0) {
+        cell.s = {
+          font: {
+            name: 'Calibri',
+            sz: 15,
+            bold: true,
+            color: { rgb: XL.white },
+          },
+          fill: { patternType: 'solid', fgColor: { rgb: XL.titleFill } },
+          alignment: { horizontal: 'left', vertical: 'center' },
+        };
+      } else if (r === 1) {
+        cell.s = {
+          font: {
+            name: 'Calibri',
+            sz: 11,
+            bold: true,
+            color: { rgb: XL.white },
+          },
+          fill: { patternType: 'solid', fgColor: { rgb: XL.headerFill } },
+          alignment: { horizontal: 'left', vertical: 'center' },
+          border: THIN_BORDER,
+        };
+      } else {
+        const isNumber = typeof cell.v === 'number';
+        cell.s = {
+          font: {
+            name: 'Calibri',
+            sz: 11,
+            bold: c === 0,
+            color: { rgb: XL.ink },
+          },
+          fill: {
+            patternType: 'solid',
+            fgColor: { rgb: r % 2 === 1 ? XL.white : XL.zebraFill },
+          },
+          alignment: {
+            horizontal: isNumber ? 'right' : 'left',
+            vertical: 'center',
+          },
+          border: THIN_BORDER,
+        };
+      }
+    }
+  }
+
   return ws;
 }
 

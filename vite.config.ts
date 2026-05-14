@@ -17,7 +17,7 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-charts': ['recharts'],
           'vendor-motion': ['framer-motion'],
-          'vendor-export': ['xlsx', 'pptxgenjs'],
+          'vendor-export': ['xlsx-js-style', 'pptxgenjs'],
         },
       },
     },
