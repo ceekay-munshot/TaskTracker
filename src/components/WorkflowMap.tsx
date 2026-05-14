@@ -5,11 +5,13 @@ import {
   ArrowUp,
   Check,
   Pencil,
+  Trash2,
   X,
 } from 'lucide-react';
 import type { WorkflowStageConfig } from '@/types';
 import { useStore } from '@/store/StoreContext';
 import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { TextArea, TextInput } from '@/components/ui/Field';
 import { cn } from '@/utils/cn';
 import { daysBetween, todayISO } from '@/utils/dates';
@@ -18,9 +20,15 @@ import { average } from '@/utils/collections';
 const BOTTLENECK_DAYS = 14;
 
 export function WorkflowMap() {
-  const { data, derived, updateWorkflowStage, reorderWorkflowStage } =
-    useStore();
+  const {
+    data,
+    derived,
+    updateWorkflowStage,
+    reorderWorkflowStage,
+    deleteWorkflowStage,
+  } = useStore();
   const toast = useToast();
+  const confirm = useConfirm();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftLabel, setDraftLabel] = useState('');
   const [draftDesc, setDraftDesc] = useState('');
@@ -40,6 +48,27 @@ export function WorkflowMap() {
     });
     setEditingId(null);
     toast.success('Workflow stage updated');
+  };
+
+  const handleDelete = async (stage: WorkflowStageConfig) => {
+    const count = data.workItems.filter(
+      (w) => w.currentStage === stage.stage,
+    ).length;
+    const ok = await confirm({
+      title: `Delete the "${stage.stage}" stage?`,
+      description:
+        count > 0
+          ? `${count} work item${count === 1 ? '' : 's'} ${
+              count === 1 ? 'is' : 'are'
+            } currently in this stage — they keep their label, but the stage will no longer appear in the workflow map. This cannot be undone.`
+          : 'This removes the stage from the workflow map. This cannot be undone.',
+      confirmLabel: 'Delete stage',
+      tone: 'danger',
+    });
+    if (ok) {
+      deleteWorkflowStage(stage.id);
+      toast.success('Workflow stage deleted', stage.stage);
+    }
   };
 
   return (
@@ -200,6 +229,14 @@ export function WorkflowMap() {
                     aria-label="Move down"
                   >
                     <ArrowDown className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(stage)}
+                    className="icon-btn h-7 w-7 text-ink-400 hover:bg-rose-50 hover:text-rose-600"
+                    aria-label="Delete stage"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               )}

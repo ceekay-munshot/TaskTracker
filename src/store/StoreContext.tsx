@@ -240,6 +240,7 @@ interface StoreContextValue {
     patch: Partial<Pick<WorkflowStageConfig, 'shortLabel' | 'description'>>,
   ) => void;
   reorderWorkflowStage: (id: string, direction: 'up' | 'down') => void;
+  deleteWorkflowStage: (id: string) => void;
 
   linkRecording: (recordingId: string, workItemId: string) => void;
   unlinkRecording: (recordingId: string, workItemId: string) => void;
@@ -1265,6 +1266,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const deleteWorkflowStage = useCallback((id: string) => {
+    setData((d) => ({
+      ...d,
+      workflowStages: d.workflowStages.filter((s) => s.id !== id),
+    }));
+  }, []);
+
   /* ----------------------------- global ----------------------------- */
   const resetMockData = useCallback(() => {
     setData(cloneSeedData());
@@ -1313,6 +1321,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addTimelineEvent,
       updateWorkflowStage,
       reorderWorkflowStage,
+      deleteWorkflowStage,
       linkRecording,
       unlinkRecording,
       resetMockData,
@@ -1357,6 +1366,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addTimelineEvent,
       updateWorkflowStage,
       reorderWorkflowStage,
+      deleteWorkflowStage,
       linkRecording,
       unlinkRecording,
       resetMockData,
