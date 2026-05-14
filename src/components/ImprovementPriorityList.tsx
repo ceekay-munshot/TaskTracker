@@ -4,11 +4,7 @@ import { useStore } from '@/store/StoreContext';
 import { useUI } from '@/store/UIContext';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/Toast';
-import {
-  Badge,
-  FeedbackStatusBadge,
-  PriorityBadge,
-} from '@/components/ui/Badge';
+import { FeedbackStatusBadge } from '@/components/ui/Badge';
 import { ActionMenu } from '@/components/ui/ActionMenu';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { rankImprovements } from '@/utils/improvements';
@@ -18,6 +14,30 @@ interface Props {
   feedback: Feedback[];
   limit?: number;
   emptyHint?: string;
+}
+
+interface Tier {
+  bar: string;
+  chip: string;
+}
+
+function scoreTier(score: number): Tier {
+  if (score >= 26) {
+    return { bar: 'bg-rose-400', chip: 'bg-rose-100 text-rose-700' };
+  }
+  if (score >= 16) {
+    return { bar: 'bg-amber-400', chip: 'bg-amber-100 text-amber-700' };
+  }
+  return { bar: 'bg-ink-300', chip: 'bg-ink-100 text-ink-600' };
+}
+
+/** A single muted "label value" factor — no colour noise. */
+function Factor({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="text-[11px] text-ink-400">
+      {label} <span className="font-bold text-ink-700">{value}</span>
+    </span>
+  );
 }
 
 export function ImprovementPriorityList({ feedback, limit, emptyHint }: Props) {
@@ -33,7 +53,9 @@ export function ImprovementPriorityList({ feedback, limit, emptyHint }: Props) {
     return (
       <EmptyState
         title="No improvements ranked"
-        description={emptyHint ?? 'Add feedback to build the prioritised backlog.'}
+        description={
+          emptyHint ?? 'Add feedback to build the prioritised backlog.'
+        }
         compact
       />
     );
@@ -58,81 +80,83 @@ export function ImprovementPriorityList({ feedback, limit, emptyHint }: Props) {
         const f = item.feedback;
         const client = getClient(f.clientId);
         const workItem = getWorkItem(f.workItemId);
-        const scoreColor =
-          item.priorityScore >= 26
-            ? 'rose'
-            : item.priorityScore >= 16
-              ? 'amber'
-              : 'slate';
+        const tier = scoreTier(item.priorityScore);
         return (
           <li
             key={f.id}
-            className="flex items-start gap-3 rounded-xl border border-ink-100 bg-white/70 p-3 transition hover:border-ink-200"
+            className="relative overflow-hidden rounded-xl border border-ink-100 bg-white transition hover:border-ink-200 hover:shadow-soft"
           >
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-[10px] font-bold text-ink-300">
-                #{index + 1}
-              </span>
-              <span
-                className={cn(
-                  'flex h-9 w-9 flex-col items-center justify-center rounded-lg text-sm font-extrabold',
-                  scoreColor === 'rose' && 'bg-rose-100 text-rose-700',
-                  scoreColor === 'amber' && 'bg-amber-100 text-amber-700',
-                  scoreColor === 'slate' && 'bg-ink-100 text-ink-500',
-                )}
-                title="Priority score"
-              >
-                {item.priorityScore}
-              </span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold leading-snug text-ink-800">
-                {f.feedbackText}
-              </p>
-              <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                <Badge color="slate" size="xs">
-                  {f.source}
-                </Badge>
-                <PriorityBadge priority={f.priority} />
-                <Badge color="sky" size="xs" soft>
-                  Impact: {f.businessImpact}
-                </Badge>
-                <Badge color="violet" size="xs" soft>
-                  Effort: {f.effort}
-                </Badge>
-                {f.frequencyCount > 1 && (
-                  <Badge color="orange" size="xs" soft>
-                    ×{f.frequencyCount} repeats
-                  </Badge>
-                )}
-                <FeedbackStatusBadge status={f.status} />
-              </div>
-              <p className="mt-1 truncate text-[11px] text-ink-400">
-                {client ? client.name : 'No client'}
-                {workItem ? ` · ${workItem.title}` : ''}
-              </p>
-            </div>
-            <ActionMenu
-              actions={[
-                {
-                  label: 'Edit feedback',
-                  icon: Pencil,
-                  onClick: () => ui.editFeedback(f),
-                },
-                {
-                  label: 'Open work item',
-                  icon: ExternalLink,
-                  hidden: !f.workItemId,
-                  onClick: () => f.workItemId && ui.openWorkItem(f.workItemId),
-                },
-                {
-                  label: 'Delete feedback',
-                  icon: Trash2,
-                  tone: 'danger',
-                  onClick: () => handleDelete(f),
-                },
-              ]}
+            <span
+              className={cn('absolute inset-y-0 left-0 w-1', tier.bar)}
             />
+            <div className="flex gap-3.5 py-3 pl-4 pr-2.5">
+              {/* Score */}
+              <div className="flex w-12 shrink-0 flex-col items-center pt-0.5">
+                <span className="text-[10px] font-bold text-ink-300">
+                  #{index + 1}
+                </span>
+                <span
+                  className={cn(
+                    'mt-0.5 flex h-10 w-12 items-center justify-center rounded-lg font-display text-lg font-extrabold',
+                    tier.chip,
+                  )}
+                  title={`Priority score ${item.priorityScore}`}
+                >
+                  {item.priorityScore}
+                </span>
+                <span className="mt-1 text-[9px] font-bold uppercase tracking-wide text-ink-300">
+                  Score
+                </span>
+              </div>
+
+              {/* Body */}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-semibold leading-snug text-ink-800">
+                    {f.feedbackText}
+                  </p>
+                  <div className="-mr-1 -mt-1 shrink-0">
+                    <ActionMenu
+                      actions={[
+                        {
+                          label: 'Edit feedback',
+                          icon: Pencil,
+                          onClick: () => ui.editFeedback(f),
+                        },
+                        {
+                          label: 'Open work item',
+                          icon: ExternalLink,
+                          hidden: !f.workItemId,
+                          onClick: () =>
+                            f.workItemId && ui.openWorkItem(f.workItemId),
+                        },
+                        {
+                          label: 'Delete feedback',
+                          icon: Trash2,
+                          tone: 'danger',
+                          onClick: () => handleDelete(f),
+                        },
+                      ]}
+                    />
+                  </div>
+                </div>
+
+                <p className="mt-1 truncate text-xs text-ink-400">
+                  {client ? client.name : 'No client'}
+                  {workItem ? ` · ${workItem.title}` : ''}
+                </p>
+
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                  <FeedbackStatusBadge status={f.status} />
+                  <Factor label="Source" value={f.source} />
+                  <Factor label="Impact" value={f.businessImpact} />
+                  <Factor label="Effort" value={f.effort} />
+                  {f.frequencyCount > 1 && (
+                    <Factor label="Repeats" value={`×${f.frequencyCount}`} />
+                  )}
+                </div>
+              </div>
+            </div>
           </li>
         );
       })}

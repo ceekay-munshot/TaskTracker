@@ -16,10 +16,7 @@ import {
 } from 'lucide-react';
 import {
   HEALTH_SCORES,
-  PRIORITIES,
   WORKFLOW_STAGES,
-  WORK_ITEM_STATUSES,
-  WORK_ITEM_TYPES,
   type HealthScore,
   type WorkItem,
   type WorkflowStage,
@@ -30,7 +27,7 @@ import { MetricCard } from '@/components/ui/MetricCard';
 import { Panel, SectionHeading } from '@/components/ui/Panel';
 import { ExportButtons } from '@/components/ui/ExportButtons';
 import { FilterBar } from '@/components/ui/FilterBar';
-import { SegmentedControl, toOptions } from '@/components/ui/Field';
+import { SegmentedControl } from '@/components/ui/Field';
 import { Avatar } from '@/components/ui/Avatar';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -58,92 +55,42 @@ export function GlobalWorkTracker() {
   const [view, setView] = useState<WorkView>('table');
   const [search, setSearch] = useState('');
   const [owner, setOwner] = useState('');
-  const [originalOwner, setOriginalOwner] = useState('');
   const [client, setClient] = useState('');
-  const [type, setType] = useState('');
-  const [status, setStatus] = useState('');
-  const [stage, setStage] = useState('');
-  const [priority, setPriority] = useState('');
-  const [health, setHealth] = useState('');
-  const [overdueOnly, setOverdueOnly] = useState(false);
-  const [pendingTransfer, setPendingTransfer] = useState(false);
-  const [hasRecording, setHasRecording] = useState(false);
 
   const hasActiveFilters =
-    search.trim() !== '' ||
-    owner !== '' ||
-    originalOwner !== '' ||
-    client !== '' ||
-    type !== '' ||
-    status !== '' ||
-    stage !== '' ||
-    priority !== '' ||
-    health !== '' ||
-    overdueOnly ||
-    pendingTransfer ||
-    hasRecording;
+    search.trim() !== '' || owner !== '' || client !== '';
 
   const resetFilters = () => {
     setSearch('');
     setOwner('');
-    setOriginalOwner('');
     setClient('');
-    setType('');
-    setStatus('');
-    setStage('');
-    setPriority('');
-    setHealth('');
-    setOverdueOnly(false);
-    setPendingTransfer(false);
-    setHasRecording(false);
   };
 
   const filteredItems = useMemo(() => {
     const term = search.trim().toLowerCase();
     return data.workItems.filter((w) => {
-      if (term) {
-        const clientName = getClient(w.clientId)?.name.toLowerCase() ?? '';
-        const ownerName = getMember(w.ownerId)?.name.toLowerCase() ?? '';
-        const haystack = `${w.title} ${w.description} ${clientName} ${ownerName}`.toLowerCase();
-        if (!haystack.includes(term)) return false;
-      }
       if (owner && w.ownerId !== owner) return false;
-      if (originalOwner && w.originalOwnerId !== originalOwner) return false;
       if (client && w.clientId !== client) return false;
-      if (type && w.type !== type) return false;
-      if (status && w.status !== status) return false;
-      if (stage && w.currentStage !== stage) return false;
-      if (priority && w.priority !== priority) return false;
-      if (health && derived.healthByItem.get(w.id)?.score !== health) {
-        return false;
-      }
-      if (overdueOnly && !(w.status !== 'Completed' && isOverdue(w.dueDate))) {
-        return false;
-      }
-      if (pendingTransfer && !w.hasPendingTransfer) return false;
-      if (hasRecording && w.linkedMeetingRecordingIds.length === 0) {
-        return false;
+      if (term) {
+        const clientName = getClient(w.clientId)?.name ?? '';
+        const ownerName = getMember(w.ownerId)?.name ?? '';
+        const haystack = [
+          w.title,
+          w.description,
+          w.type,
+          w.status,
+          w.currentStage,
+          w.priority,
+          clientName,
+          ownerName,
+        ]
+          .join(' ')
+          .toLowerCase();
+        if (!haystack.includes(term)) return false;
       }
       return true;
     });
-  }, [
-    data.workItems,
-    derived,
-    getClient,
-    getMember,
-    search,
-    owner,
-    originalOwner,
-    client,
-    type,
-    status,
-    stage,
-    priority,
-    health,
-    overdueOnly,
-    pendingTransfer,
-    hasRecording,
-  ]);
+  }, [data.workItems, getClient, getMember, search, owner, client]);
 
   const stats = useMemo(() => {
     const active = filteredItems.filter((w) => w.status !== 'Completed');
@@ -375,12 +322,13 @@ export function GlobalWorkTracker() {
         />
       </div>
 
-      {/* Filters */}
+      {/* Filters — a strong search plus the two filters that matter */}
       <FilterBar
         search={{
           value: search,
           onChange: setSearch,
-          placeholder: 'Search work items, clients, owners…',
+          placeholder:
+            'Search by title, client, owner, type, status, stage, priority…',
         }}
         selects={[
           {
@@ -394,17 +342,6 @@ export function GlobalWorkTracker() {
             })),
           },
           {
-            key: 'originalOwner',
-            label: 'Original Owners',
-            value: originalOwner,
-            onChange: setOriginalOwner,
-            options: data.teamMembers.map((m) => ({
-              value: m.id,
-              label: m.name,
-            })),
-            allLabel: 'Any original owner',
-          },
-          {
             key: 'client',
             label: 'Clients',
             value: client,
@@ -413,61 +350,6 @@ export function GlobalWorkTracker() {
               value: c.id,
               label: c.name,
             })),
-          },
-          {
-            key: 'type',
-            label: 'Types',
-            value: type,
-            onChange: setType,
-            options: toOptions(WORK_ITEM_TYPES),
-          },
-          {
-            key: 'status',
-            label: 'Statuses',
-            value: status,
-            onChange: setStatus,
-            options: toOptions(WORK_ITEM_STATUSES),
-          },
-          {
-            key: 'stage',
-            label: 'Stages',
-            value: stage,
-            onChange: setStage,
-            options: toOptions(WORKFLOW_STAGES),
-          },
-          {
-            key: 'priority',
-            label: 'Priorities',
-            value: priority,
-            onChange: setPriority,
-            options: toOptions(PRIORITIES),
-          },
-          {
-            key: 'health',
-            label: 'Health',
-            value: health,
-            onChange: setHealth,
-            options: toOptions(HEALTH_SCORES),
-          },
-        ]}
-        toggles={[
-          {
-            key: 'overdue',
-            label: 'Overdue only',
-            active: overdueOnly,
-            onChange: setOverdueOnly,
-          },
-          {
-            key: 'pendingTransfer',
-            label: 'Pending transfer',
-            active: pendingTransfer,
-            onChange: setPendingTransfer,
-          },
-          {
-            key: 'hasRecording',
-            label: 'Has recording',
-            active: hasRecording,
-            onChange: setHasRecording,
           },
         ]}
         hasActiveFilters={hasActiveFilters}
