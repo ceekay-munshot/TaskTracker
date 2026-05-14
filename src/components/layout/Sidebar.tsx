@@ -1,11 +1,20 @@
 import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Database, LineChart, RotateCcw, Trash2, X } from 'lucide-react';
+import {
+  Database,
+  LineChart,
+  LogOut,
+  RotateCcw,
+  Trash2,
+  X,
+} from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { NAV_ITEMS } from '@/config/navigation';
 import { useStore } from '@/store/StoreContext';
+import { useAuth } from '@/store/AuthContext';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/Toast';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface SidebarProps {
   open: boolean;
@@ -14,6 +23,7 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const { resetMockData, clearAllData, data } = useStore();
+  const { currentUser, logout } = useAuth();
   const confirm = useConfirm();
   const toast = useToast();
 
@@ -141,6 +151,36 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             </NavLink>
           ))}
         </nav>
+
+        {/* Signed-in user */}
+        {currentUser && (
+          <div className="border-t border-ink-200/70 p-3">
+            <div className="flex items-center gap-2.5 rounded-xl bg-ink-50 p-2.5">
+              <Avatar
+                name={currentUser.name}
+                src={currentUser.photoUrl}
+                size="sm"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-ink-800">
+                  {currentUser.name}
+                </p>
+                <p className="truncate text-[11px] text-ink-400">
+                  {currentUser.role}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={logout}
+                className="icon-btn shrink-0"
+                aria-label="Sign out"
+                title="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Data controls */}
         <div className="border-t border-ink-200/70 p-3">
