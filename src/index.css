@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-ink-50 text-ink-800 font-sans;
+    background-image:
+      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.08) 0px, transparent 45%),
+      radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.07) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(14, 165, 233, 0.08) 0px, transparent 50%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-ink-300/80 rounded-full;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-ink-400;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white/85 backdrop-blur-xl rounded-2xl border border-white/70 shadow-card;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-glow hover:-translate-y-0.5;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-sm text-ink-800
+      placeholder:text-ink-400 outline-none transition
+      focus:border-brand-400 focus:ring-4 focus:ring-brand-100;
+  }
+
+  .label-text {
+    @apply block text-xs font-semibold uppercase tracking-wide text-ink-500 mb-1.5;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
+      transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed select-none;
+  }
+
+  .btn-primary {
+    @apply btn bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-soft
+      hover:from-brand-600 hover:to-brand-800 hover:shadow-glow active:scale-[0.98];
+  }
+
+  .btn-ghost {
+    @apply btn bg-white text-ink-700 border border-ink-200 hover:bg-ink-50 hover:border-ink-300 active:scale-[0.98];
+  }
+
+  .btn-danger {
+    @apply btn bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 active:scale-[0.98];
+  }
+
+  .btn-soft {
+    @apply btn bg-brand-50 text-brand-700 hover:bg-brand-100 active:scale-[0.98];
+  }
+
+  .icon-btn {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-lg text-ink-500
+      transition hover:bg-ink-100 hover:text-ink-800 active:scale-95;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+
+  .section-title {
+    @apply text-sm font-bold uppercase tracking-wider text-ink-400;
+  }
+
+  .stat-grid {
+    @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+}
+
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .text-gradient {
+    @apply bg-gradient-to-r from-brand-600 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent;
+  }
+}
