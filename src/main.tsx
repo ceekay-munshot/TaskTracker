@@ -6,6 +6,7 @@ import { StoreProvider } from '@/store/StoreContext';
 import { UIProvider } from '@/store/UIContext';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import './index.css';
 
 const rootElement = document.getElementById('root');
@@ -15,16 +16,18 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter>
-      <StoreProvider>
-        <ToastProvider>
-          <ConfirmProvider>
-            <UIProvider>
-              <App />
-            </UIProvider>
-          </ConfirmProvider>
-        </ToastProvider>
-      </StoreProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <StoreProvider>
+          <ToastProvider>
+            <ConfirmProvider>
+              <UIProvider>
+                <App />
+              </UIProvider>
+            </ConfirmProvider>
+          </ToastProvider>
+        </StoreProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 );
