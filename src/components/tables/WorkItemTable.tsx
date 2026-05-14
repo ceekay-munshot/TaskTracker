@@ -91,7 +91,7 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[1100px] border-separate border-spacing-y-1.5 text-sm">
+      <table className="w-full min-w-[1320px] border-separate border-spacing-y-1.5 text-sm">
         <thead>
           <tr className="text-left text-[11px] font-bold uppercase tracking-wide text-ink-400">
             <th className="px-3 pb-1">Work item</th>
@@ -117,7 +117,7 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
               <tr
                 key={wi.id}
                 onClick={() => ui.openWorkItem(wi.id)}
-                className="cursor-pointer transition [&>td]:bg-white/70 hover:[&>td]:bg-brand-50/60"
+                className="cursor-pointer align-middle transition [&>td]:whitespace-nowrap [&>td]:bg-white/70 hover:[&>td]:bg-brand-50/60"
               >
                 <td className="rounded-l-xl px-3 py-2.5">
                   <div className="flex items-center gap-2">

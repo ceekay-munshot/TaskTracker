@@ -70,42 +70,49 @@ export function MemberCard({ member }: { member: TeamMember }) {
       className="card card-hover flex cursor-pointer flex-col p-4"
       onClick={() => navigate(`/team/${member.id}`)}
     >
-      <div className="flex items-start gap-3">
-        <Avatar name={member.name} src={member.photoUrl} size="lg" ring />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="truncate font-display text-base font-extrabold text-ink-800">
+      <div className="relative">
+        <div
+          className="absolute -right-1.5 -top-1.5"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ActionMenu
+            actions={[
+              {
+                label: 'View profile',
+                icon: Eye,
+                onClick: () => navigate(`/team/${member.id}`),
+              },
+              {
+                label: 'Edit member',
+                icon: Pencil,
+                onClick: () => ui.editTeamMember(member),
+              },
+              {
+                label: 'Delete member',
+                icon: Trash2,
+                tone: 'danger',
+                onClick: handleDelete,
+              },
+            ]}
+          />
+        </div>
+        <div className="flex items-start gap-3 pr-7">
+          <Avatar name={member.name} src={member.photoUrl} size="lg" ring />
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-base font-extrabold leading-snug text-ink-800">
               {member.name}
             </p>
-            <MemberStatusBadge status={member.status} />
+            <p className="mt-0.5 truncate text-xs font-semibold text-brand-600">
+              {member.role}
+            </p>
+            <div className="mt-1.5">
+              <MemberStatusBadge status={member.status} />
+            </div>
+            <p className="mt-1.5 truncate text-xs text-ink-400">
+              {member.city} · {member.qualification}
+            </p>
           </div>
-          <p className="truncate text-xs font-semibold text-brand-600">
-            {member.role}
-          </p>
-          <p className="truncate text-xs text-ink-400">
-            {member.city} · {member.qualification}
-          </p>
         </div>
-        <ActionMenu
-          actions={[
-            {
-              label: 'View profile',
-              icon: Eye,
-              onClick: () => navigate(`/team/${member.id}`),
-            },
-            {
-              label: 'Edit member',
-              icon: Pencil,
-              onClick: () => ui.editTeamMember(member),
-            },
-            {
-              label: 'Delete member',
-              icon: Trash2,
-              tone: 'danger',
-              onClick: handleDelete,
-            },
-          ]}
-        />
       </div>
 
       {member.expertise.length > 0 && (
