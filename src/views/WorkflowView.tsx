@@ -15,7 +15,7 @@ import { useStore } from '@/store/StoreContext';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { Panel, SectionHeading } from '@/components/ui/Panel';
 import { ExportButtons } from '@/components/ui/ExportButtons';
-import { BarChartView } from '@/components/charts/Charts';
+import { BarList } from '@/components/charts/Charts';
 import { WorkflowMap } from '@/components/WorkflowMap';
 import { HierarchyTree } from '@/components/HierarchyTree';
 import { daysBetween, todayISO } from '@/utils/dates';
@@ -312,11 +312,11 @@ export function WorkflowView() {
         icon={GitBranch}
         iconColor="teal"
       >
-        <BarChartView
-          data={stageChartData}
-          series={[{ key: 'active', name: 'Active items' }]}
-          orientation="bars"
-          height={460}
+        <BarList
+          data={stageChartData.map((d) => ({
+            label: d.label,
+            value: d.active,
+          }))}
         />
       </Panel>
     </div>

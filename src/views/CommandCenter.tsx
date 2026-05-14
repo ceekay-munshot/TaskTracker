@@ -30,7 +30,7 @@ import {
   TypeBadge,
 } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { BarChartView } from '@/components/charts/Charts';
+import { BarChartView, BarList } from '@/components/charts/Charts';
 import { WorkloadHeatmap } from '@/components/WorkloadHeatmap';
 import { ImprovementPriorityList } from '@/components/ImprovementPriorityList';
 import { MeetingRecordingCard } from '@/components/MeetingRecordingCard';
@@ -320,11 +320,11 @@ export function CommandCenter() {
           iconColor="indigo"
           className="lg:col-span-2"
         >
-          <BarChartView
-            data={pipelineData}
-            series={[{ key: 'count', name: 'Work items' }]}
-            orientation="bars"
-            height={440}
+          <BarList
+            data={pipelineData.map((d) => ({
+              label: d.label,
+              value: d.count,
+            }))}
           />
         </Panel>
         <Panel
@@ -336,7 +336,7 @@ export function CommandCenter() {
           <BarChartView
             data={teamWorkloadData}
             series={[{ key: 'active', name: 'Active items' }]}
-            height={440}
+            height={300}
           />
         </Panel>
       </div>
