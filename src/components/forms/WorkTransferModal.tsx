@@ -30,10 +30,11 @@ export function WorkTransferModal({ open, onClose, editing, prefill }: Props) {
   const { addTransfer, updateTransfer, data, getMember, getWorkItem } =
     useStore();
   const toast = useToast();
+  // Must be declared before the useState initializer below — emptyDraft()
+  // closes over `lead`, and the initializer runs synchronously on first render.
+  const lead = data.teamMembers.find((m) => m.role === 'Team Lead - Intern');
   const [draft, setDraft] = useState<TransferInput>(() => emptyDraft());
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const lead = data.teamMembers.find((m) => m.role === 'Team Lead - Intern');
 
   function emptyDraft(): TransferInput {
     const base: TransferInput = {
