@@ -100,7 +100,7 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
       title: '',
       type: 'Dashboard',
       clientId: data.clients[0]?.id ?? '',
-      ownerId: data.teamMembers[0]?.id ?? '',
+      ownerId: '',
       priority: 'Medium',
       currentStage: 'Client Meeting',
       status: 'Not Started',
@@ -161,7 +161,6 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
     const errs: Record<string, string> = {};
     if (!draft.title.trim()) errs.title = 'Title is required';
     if (!draft.clientId) errs.clientId = 'A client is required';
-    if (!draft.ownerId) errs.ownerId = 'An owner is required';
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
@@ -234,7 +233,10 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
                 invalid={!!errors.clientId}
               />
             </Field>
-            <Field label="Owner" required error={errors.ownerId}>
+            <Field
+              label="Owner"
+              hint="Leave unassigned if not decided yet"
+            >
               <Select
                 value={draft.ownerId}
                 onChange={(v) => set({ ownerId: v })}
@@ -242,8 +244,7 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
                   value: m.id,
                   label: m.name,
                 }))}
-                placeholder="Select owner"
-                invalid={!!errors.ownerId}
+                placeholder="— Not assigned —"
               />
             </Field>
           </div>

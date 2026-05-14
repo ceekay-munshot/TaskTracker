@@ -555,6 +555,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           }
         }
 
+        // Assignment — owner moved from unassigned to a real member.
+        if (!existing.ownerId && patch.ownerId) {
+          if (!next.originalOwnerId) {
+            next.originalOwnerId = patch.ownerId;
+          }
+          const ownerName =
+            d.teamMembers.find((m) => m.id === patch.ownerId)?.name ??
+            'a team member';
+          events.push(
+            makeTimelineEvent(
+              id,
+              'assigned',
+              `Assigned to ${ownerName}`,
+              `${next.title} was assigned an owner.`,
+              patch.ownerId,
+            ),
+          );
+        }
+
         return {
           ...d,
           workItems: d.workItems.map((w) => (w.id === id ? next : w)),

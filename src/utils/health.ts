@@ -30,6 +30,12 @@ export function computeHealth(
   const reasons: string[] = [];
   let points = 0;
 
+  // Ownership — unassigned work is a real delivery risk
+  if (!item.ownerId) {
+    points += 12;
+    reasons.push('Not yet assigned to an owner');
+  }
+
   // Due-date risk
   const overdue = daysOverdue(item.dueDate);
   if (overdue > 0) {
@@ -85,7 +91,7 @@ export function computeHealth(
   }
 
   // Owner workload pressure
-  if (ctx.ownerActiveCount > 5) {
+  if (item.ownerId && ctx.ownerActiveCount > 5) {
     points += Math.min((ctx.ownerActiveCount - 5) * 3.5, 16);
     reasons.push(`Owner carrying ${ctx.ownerActiveCount} active items`);
   }
