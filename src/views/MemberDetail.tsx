@@ -34,6 +34,7 @@ import {
   UserRound,
   Video,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import {
   PRIORITIES,
   WORK_ITEM_STATUSES,
@@ -68,6 +69,7 @@ import { MeetingRecordingCard } from '@/components/MeetingRecordingCard';
 import { ImprovementPriorityList } from '@/components/ImprovementPriorityList';
 import { formatDate, timeSince } from '@/utils/dates';
 import { sortByKey } from '@/utils/collections';
+import { cn } from '@/utils/cn';
 import type { ColorName } from '@/utils/palette';
 import type { ExcelSheet, PptSummary } from '@/utils/export';
 
@@ -92,6 +94,47 @@ function riskTone(risk: number): ColorName {
   if (risk >= 50) return 'orange';
   if (risk >= 28) return 'amber';
   return 'emerald';
+}
+
+function MetaItem({
+  icon: Icon,
+  label,
+  value,
+  href,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  href?: string;
+}) {
+  const body = (
+    <>
+      <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-ink-400">
+        <Icon className="h-3 w-3" />
+        {label}
+      </p>
+      <p
+        className={cn(
+          'mt-0.5 truncate text-sm font-semibold',
+          href ? 'text-brand-600' : 'text-ink-700',
+        )}
+        title={value}
+      >
+        {value || '—'}
+      </p>
+    </>
+  );
+  return (
+    <div className="rounded-xl border border-ink-100 bg-ink-50/60 px-3 py-2">
+      {href ? (
+        <a href={href} className="block hover:underline">
+          {body}
+        </a>
+      ) : (
+        body
+      )}
+    </div>
+  );
 }
 
 export function MemberDetail() {
@@ -390,84 +433,92 @@ export function MemberDetail() {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="card relative overflow-hidden p-5"
+        className="card overflow-hidden"
       >
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-brand-500 via-violet-500 to-fuchsia-500" />
-        <div className="relative flex flex-col gap-4 pt-6 sm:flex-row sm:items-start">
-          <Avatar
-            name={member.name}
-            src={member.photoUrl}
-            size="xl"
-            ring
-          />
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-display text-2xl font-extrabold text-ink-800">
-                {member.name}
-              </h2>
-              <MemberStatusBadge status={member.status} />
-            </div>
-            <p className="mt-0.5 text-sm font-semibold text-brand-600">
-              {member.role}
-            </p>
-
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-500">
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5 text-ink-300" />
-                {member.city}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Briefcase className="h-3.5 w-3.5 text-ink-300" />
-                {member.qualification}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Timer className="h-3.5 w-3.5 text-ink-300" />
-                {timeSince(member.joinDate)} on the desk
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <UserRound className="h-3.5 w-3.5 text-ink-300" />
-                {manager ? `Reports to ${manager.name}` : 'Founder'}
-              </span>
-            </div>
-
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-500">
-              <a
-                href={`mailto:${member.email}`}
-                className="inline-flex items-center gap-1.5 font-semibold text-brand-600 hover:underline"
-              >
-                <Mail className="h-3.5 w-3.5" />
-                {member.email}
-              </a>
-              <span className="inline-flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5 text-ink-300" />
-                {member.phone}
-              </span>
-            </div>
-
-            {member.expertise.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {member.expertise.map((e) => (
-                  <Badge key={e} color="violet" size="xs" soft>
-                    {e}
-                  </Badge>
-                ))}
+        <div className="h-1.5 bg-gradient-to-r from-brand-500 via-violet-500 to-fuchsia-500" />
+        <div className="flex flex-col gap-5 p-5 sm:flex-row sm:gap-6 sm:p-6">
+          {/* Avatar — left */}
+          <div className="flex shrink-0 justify-center sm:block">
+            <div className="rounded-full bg-gradient-to-br from-brand-500 via-violet-500 to-fuchsia-500 p-[3px]">
+              <div className="rounded-full bg-white p-[3px]">
+                <Avatar name={member.name} src={member.photoUrl} size="xl" />
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* Details — right */}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h2 className="font-display text-2xl font-extrabold leading-tight text-ink-800">
+                    {member.name}
+                  </h2>
+                  <MemberStatusBadge status={member.status} />
+                </div>
+                <p className="mt-1 text-sm font-semibold text-brand-600">
+                  {member.role}
+                  <span className="font-medium text-ink-400">
+                    {manager ? ` · reports to ${manager.name}` : ' · Founder'}
+                  </span>
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn-ghost shrink-0"
+                onClick={() => ui.editTeamMember(member)}
+              >
+                <Pencil className="h-4 w-4" /> Edit profile
+              </button>
+            </div>
 
             {member.bio && (
               <p className="mt-3 max-w-3xl text-sm leading-relaxed text-ink-500">
                 {member.bio}
               </p>
             )}
-          </div>
 
-          <button
-            type="button"
-            className="btn-soft shrink-0"
-            onClick={() => ui.editTeamMember(member)}
-          >
-            <Pencil className="h-4 w-4" /> Edit
-          </button>
+            <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
+              <MetaItem icon={MapPin} label="Location" value={member.city} />
+              <MetaItem
+                icon={Briefcase}
+                label="Qualification"
+                value={member.qualification}
+              />
+              <MetaItem
+                icon={Timer}
+                label="Tenure"
+                value={`${timeSince(member.joinDate)} on desk`}
+              />
+              <MetaItem
+                icon={CalendarDays}
+                label="Joined"
+                value={formatDate(member.joinDate)}
+              />
+              <MetaItem
+                icon={Mail}
+                label="Email"
+                value={member.email}
+                href={`mailto:${member.email}`}
+              />
+              <MetaItem icon={Phone} label="Phone" value={member.phone} />
+            </div>
+
+            {member.expertise.length > 0 && (
+              <div className="mt-4">
+                <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-400">
+                  Expertise
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {member.expertise.map((e) => (
+                    <Badge key={e} color="violet" size="sm" soft>
+                      {e}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </motion.div>
 
