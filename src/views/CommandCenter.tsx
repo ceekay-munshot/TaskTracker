@@ -14,6 +14,7 @@ import {
   Rocket,
   ShieldCheck,
   Sparkles,
+  UserPlus,
   Video,
   Zap,
 } from 'lucide-react';
@@ -34,6 +35,7 @@ import { BarChartView, BarList } from '@/components/charts/Charts';
 import { WorkloadHeatmap } from '@/components/WorkloadHeatmap';
 import { ImprovementPriorityList } from '@/components/ImprovementPriorityList';
 import { MeetingRecordingCard } from '@/components/MeetingRecordingCard';
+import { PendingAssignment } from '@/components/PendingAssignment';
 import { isBacklogFeedback } from '@/utils/improvements';
 import { daysOverdue, formatDate, isOverdue } from '@/utils/dates';
 import { sortByKey } from '@/utils/collections';
@@ -53,6 +55,7 @@ export function CommandCenter() {
     const demoReady = wi.filter((w) => derived.demoReadyItemIds.has(w.id));
     return {
       active,
+      unassigned: wi.filter((w) => !w.ownerId && w.status !== 'Completed'),
       live: wi.filter((w) => w.status === 'Live'),
       blocked: wi.filter((w) => w.status === 'Blocked'),
       waitingVipul: wi.filter((w) => w.currentStage === 'Vipul Approval'),
@@ -279,7 +282,24 @@ export function CommandCenter() {
           color="fuchsia"
           onClick={() => navigate('/meetings')}
         />
+        <MetricCard
+          label="Pending Assignment"
+          value={stats.unassigned.length}
+          icon={UserPlus}
+          color="amber"
+          hint="work with no owner yet"
+        />
       </div>
+
+      {/* Pending assignment */}
+      <Panel
+        title="Pending assignment"
+        subtitle="Work waiting for an owner — assign it from here"
+        icon={UserPlus}
+        iconColor="amber"
+      >
+        <PendingAssignment />
+      </Panel>
 
       {/* Quick actions */}
       <Panel title="Quick actions" icon={Zap} iconColor="amber">

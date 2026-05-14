@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Sparkles,
   StickyNote,
+  UserCheck,
   Video,
   X,
 } from 'lucide-react';
@@ -45,6 +46,7 @@ const EVENT_META: Record<
   meeting_added: { icon: Calendar, color: 'teal' },
   went_live: { icon: Rocket, color: 'cyan' },
   completed: { icon: CheckCircle2, color: 'emerald' },
+  assigned: { icon: UserCheck, color: 'indigo' },
   note: { icon: StickyNote, color: 'slate' },
 };
 

@@ -192,6 +192,7 @@ export const TIMELINE_EVENT_TYPES = [
   'meeting_added',
   'went_live',
   'completed',
+  'assigned',
   'note',
 ] as const;
 export type TimelineEventType = (typeof TIMELINE_EVENT_TYPES)[number];

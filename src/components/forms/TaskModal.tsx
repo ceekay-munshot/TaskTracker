@@ -63,7 +63,6 @@ export function TaskModal({ open, onClose, editing, prefill }: Props) {
   const submit = () => {
     const errs: Record<string, string> = {};
     if (!draft.title.trim()) errs.title = 'Task title is required';
-    if (!draft.ownerId) errs.ownerId = 'An owner is required';
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
@@ -119,7 +118,7 @@ export function TaskModal({ open, onClose, editing, prefill }: Props) {
               placeholder="Standalone task"
             />
           </Field>
-          <Field label="Owner" required error={errors.ownerId}>
+          <Field label="Owner" hint="Leave unassigned if not decided yet">
             <Select
               value={draft.ownerId}
               onChange={(v) => set({ ownerId: v })}
@@ -127,8 +126,7 @@ export function TaskModal({ open, onClose, editing, prefill }: Props) {
                 value: m.id,
                 label: m.name,
               }))}
-              placeholder="Select owner"
-              invalid={!!errors.ownerId}
+              placeholder="— Not assigned —"
             />
           </Field>
           <Field label="Client">
