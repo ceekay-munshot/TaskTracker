@@ -18,14 +18,10 @@ import { useUI } from '@/store/UIContext';
 import { Drawer } from '@/components/ui/Modal';
 import { Tabs } from '@/components/ui/Tabs';
 import {
-  ApprovalBadge,
   Badge,
-  ClientFeedbackBadge,
   PriorityBadge,
   ProjectHealthBadge,
-  ReviewBadge,
   StatusBadge,
-  StepStatusBadge,
   TaskStatusBadge,
   TransferStatusBadge,
   TypeBadge,
@@ -295,29 +291,47 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
 
           {tab === 'overview' && (
             <div className="space-y-5">
-              {/* Pipeline status */}
+              {/* Workflow checkpoints */}
               <div>
-                <p className="section-title mb-2">Delivery pipeline</p>
+                <p className="section-title mb-2">Workflow checkpoints</p>
                 <div className="space-y-1.5">
-                  <PipelineRow label="ChatGPT master prompt">
-                    <StepStatusBadge status={wi.chatgptPromptStatus} />
+                  <PipelineRow label="Client meeting">
+                    <Badge color={wi.clientMeetingDone ? 'emerald' : 'slate'} soft>
+                      {wi.clientMeetingDone ? 'Done' : 'Not done'}
+                    </Badge>
                   </PipelineRow>
-                  <PipelineRow label="Claude build">
-                    <StepStatusBadge status={wi.claudeBuildStatus} />
+                  <PipelineRow label="Claude work">
+                    <Badge color={wi.claudeWorkStarted ? 'indigo' : 'slate'} soft>
+                      {wi.claudeWorkStarted ? 'Started' : 'Not started'}
+                    </Badge>
                   </PipelineRow>
-                  <PipelineRow label="Agent integration">
-                    <StepStatusBadge status={wi.agentIntegrationStatus} />
-                  </PipelineRow>
-                  <PipelineRow label="Vipul approval">
-                    <ApprovalBadge status={wi.vipulApprovalStatus} />
-                  </PipelineRow>
-                  <PipelineRow label="Chiraag review">
-                    <ReviewBadge status={wi.chiraagReviewStatus} />
-                  </PipelineRow>
-                  <PipelineRow label="Client feedback">
-                    <ClientFeedbackBadge status={wi.clientFeedbackStatus} />
+                  <PipelineRow label="Live on Munshot">
+                    <Badge color={wi.liveOnMunshot ? 'emerald' : 'slate'} soft>
+                      {wi.liveOnMunshot ? 'Live' : 'Not live'}
+                    </Badge>
                   </PipelineRow>
                 </div>
+              </div>
+
+              {/* Current status note */}
+              <div>
+                <div className="mb-2 flex items-baseline justify-between gap-2">
+                  <p className="section-title">Current status note</p>
+                  {wi.statusNoteUpdatedAt && (
+                    <span className="text-[11px] text-ink-400">
+                      Updated {formatDate(wi.statusNoteUpdatedAt)}
+                    </span>
+                  )}
+                </div>
+                {wi.statusNote ? (
+                  <p className="rounded-xl border border-ink-100 bg-amber-50/40 p-3 text-sm leading-relaxed text-ink-700">
+                    {wi.statusNote}
+                  </p>
+                ) : (
+                  <p className="rounded-xl border border-dashed border-ink-200 p-3 text-center text-xs text-ink-400">
+                    No status note yet — edit the work item to add one.
+                  </p>
+                )}
               </div>
 
               {/* Health reasons */}

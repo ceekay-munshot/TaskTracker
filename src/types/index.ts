@@ -69,20 +69,8 @@ export type ClientFeedbackStatus = (typeof CLIENT_FEEDBACK_STATUSES)[number];
 
 export const WORKFLOW_STAGES = [
   'Client Meeting',
-  'Recording Reviewed',
-  'Requirement Understood',
-  'ChatGPT Master Prompt Created',
-  'Claude Build Started',
-  'Dashboard/Agent Built',
-  'Agent Integration Optional',
-  'Team Review',
-  'Vipul Approval',
+  'Claude Work',
   'Live on Munshot',
-  'Chiraag Review',
-  'Client Demo',
-  'Client Feedback',
-  'Improvement Backlog',
-  'Final Completion',
 ] as const;
 export type WorkflowStage = (typeof WORKFLOW_STAGES)[number];
 
@@ -258,6 +246,11 @@ export interface WorkItem {
   hasPendingTransfer: boolean;
   priority: Priority;
   currentStage: WorkflowStage;
+  clientMeetingDone: boolean;
+  claudeWorkStarted: boolean;
+  liveOnMunshot: boolean;
+  statusNote: string;
+  statusNoteUpdatedAt: string | null;
   status: WorkItemStatus;
   startDate: string;
   dueDate: string;

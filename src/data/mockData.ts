@@ -18,7 +18,6 @@ import {
   type Feedback,
   type Meeting,
   type ReviewStatus,
-  type StepStatus,
   type Task,
   type TaskStatus,
   type TeamMember,
@@ -51,61 +50,13 @@ const STAGE_META: Record<WorkflowStage, { short: string; description: string }> 
       short: 'Meeting',
       description: 'Initial client meeting held; raw requirements captured.',
     },
-    'Recording Reviewed': {
-      short: 'Recording',
-      description: 'Meeting recording reviewed by the assigned owner.',
-    },
-    'Requirement Understood': {
-      short: 'Requirement',
-      description: 'Requirements distilled into a clear, scoped build brief.',
-    },
-    'ChatGPT Master Prompt Created': {
-      short: 'Master Prompt',
-      description: 'Master prompt engineered and validated for the build.',
-    },
-    'Claude Build Started': {
-      short: 'Build Started',
-      description: 'Claude Code build kicked off from the master prompt.',
-    },
-    'Dashboard/Agent Built': {
-      short: 'Built',
-      description: 'Working dashboard or agent built and self-tested.',
-    },
-    'Agent Integration Optional': {
-      short: 'Agent Integration',
-      description: 'Optional Munshot agent integration scoped or wired in.',
-    },
-    'Team Review': {
-      short: 'Team Review',
-      description: 'Peer review by the equity research team.',
-    },
-    'Vipul Approval': {
-      short: 'Vipul Approval',
-      description: 'Team Lead (Vipul) sign-off before go-live.',
+    'Claude Work': {
+      short: 'Claude Work',
+      description: 'Build in progress — owner is working on the deliverable.',
     },
     'Live on Munshot': {
       short: 'Live',
       description: 'Deployed live on the Munshot platform.',
-    },
-    'Chiraag Review': {
-      short: 'Chiraag Review',
-      description: 'Founder (Chiraag) review of the live deliverable.',
-    },
-    'Client Demo': {
-      short: 'Demo',
-      description: 'Deliverable demoed to the client.',
-    },
-    'Client Feedback': {
-      short: 'Feedback',
-      description: 'Client feedback collected and logged.',
-    },
-    'Improvement Backlog': {
-      short: 'Improvements',
-      description: 'Feedback converted into a prioritised improvement backlog.',
-    },
-    'Final Completion': {
-      short: 'Completed',
-      description: 'All iterations done; deliverable formally completed.',
     },
   };
 
@@ -401,6 +352,22 @@ const CLIENTS: Client[] = [
 /* Work items (compact specs → full entities)                          */
 /* ------------------------------------------------------------------ */
 
+type LegacyStage =
+  | WorkflowStage
+  | 'Recording Reviewed'
+  | 'Requirement Understood'
+  | 'ChatGPT Master Prompt Created'
+  | 'Claude Build Started'
+  | 'Dashboard/Agent Built'
+  | 'Agent Integration Optional'
+  | 'Team Review'
+  | 'Vipul Approval'
+  | 'Chiraag Review'
+  | 'Client Demo'
+  | 'Client Feedback'
+  | 'Improvement Backlog'
+  | 'Final Completion';
+
 interface WiSpec {
   id: string;
   title: string;
@@ -408,7 +375,7 @@ interface WiSpec {
   clientId: string;
   ownerId: string;
   originalOwnerId: string;
-  stage: WorkflowStage;
+  stage: LegacyStage;
   status: WorkItemStatus;
   priority: WorkItem['priority'];
   progress: number;
@@ -910,39 +877,37 @@ const WI_SPECS: WiSpec[] = [
   },
 ];
 
-function deriveStepStatus(reached: boolean, current: boolean): StepStatus {
-  if (reached) return 'Done';
-  if (current) return 'In Progress';
-  return 'Not Started';
+const LEGACY_STAGE_MAP: Record<string, WorkflowStage> = {
+  'Client Meeting': 'Client Meeting',
+  'Recording Reviewed': 'Client Meeting',
+  'Requirement Understood': 'Claude Work',
+  'ChatGPT Master Prompt Created': 'Claude Work',
+  'Claude Build Started': 'Claude Work',
+  'Dashboard/Agent Built': 'Claude Work',
+  'Agent Integration Optional': 'Claude Work',
+  'Team Review': 'Claude Work',
+  'Vipul Approval': 'Claude Work',
+  'Live on Munshot': 'Live on Munshot',
+  'Chiraag Review': 'Live on Munshot',
+  'Client Demo': 'Live on Munshot',
+  'Client Feedback': 'Live on Munshot',
+  'Improvement Backlog': 'Live on Munshot',
+  'Final Completion': 'Live on Munshot',
+  'Claude Work': 'Claude Work',
+};
+
+function mapLegacyStage(stage: string): WorkflowStage {
+  return LEGACY_STAGE_MAP[stage] ?? 'Client Meeting';
 }
 
 function buildWorkItem(spec: WiSpec): WorkItem {
-  const idx = stageIndexOf(spec.stage);
-  const promptIdx = stageIndexOf('ChatGPT Master Prompt Created');
-  const buildIdx = stageIndexOf('Claude Build Started');
-  const builtIdx = stageIndexOf('Dashboard/Agent Built');
-  const integrationIdx = stageIndexOf('Agent Integration Optional');
-  const vipulIdx = stageIndexOf('Vipul Approval');
-  const chiraagIdx = stageIndexOf('Chiraag Review');
-  const feedbackIdx = stageIndexOf('Client Feedback');
+  const stage = mapLegacyStage(spec.stage as string);
+  const reached = (target: WorkflowStage): boolean =>
+    WORKFLOW_STAGES.indexOf(stage) >= WORKFLOW_STAGES.indexOf(target);
 
-  const agentIntegrationStatus: StepStatus = !spec.agentIntegrationRequired
-    ? 'Not Required'
-    : deriveStepStatus(idx > integrationIdx, idx === integrationIdx);
-
-  const vipulApprovalStatus: ApprovalStatus =
-    spec.vipulApprovalStatus ?? (idx > vipulIdx ? 'Approved' : 'Pending');
-  const chiraagReviewStatus: ReviewStatus =
-    spec.chiraagReviewStatus ?? (idx > chiraagIdx ? 'Reviewed' : 'Pending');
-  const clientFeedbackStatus: ClientFeedbackStatus =
-    spec.clientFeedbackStatus ??
-    (idx > feedbackIdx
-      ? 'Addressed'
-      : idx === feedbackIdx
-        ? 'Received'
-        : idx >= stageIndexOf('Client Demo')
-          ? 'Pending'
-          : 'No Feedback Yet');
+  const clientMeetingDone = reached('Claude Work');
+  const claudeWorkStarted = reached('Claude Work');
+  const liveOnMunshot = reached('Live on Munshot');
 
   const client = CLIENTS.find((c) => c.id === spec.clientId);
   const defaultPocId = client?.pocs[0]?.id ?? null;
@@ -960,23 +925,25 @@ function buildWorkItem(spec: WiSpec): WorkItem {
     linkedMeetingRecordingIds: [],
     hasPendingTransfer: spec.hasPendingTransfer ?? false,
     priority: spec.priority,
-    currentStage: spec.stage,
+    currentStage: stage,
+    clientMeetingDone,
+    claudeWorkStarted,
+    liveOnMunshot,
+    statusNote: '',
+    statusNoteUpdatedAt: null,
     status: spec.status,
     startDate: spec.startDate,
     dueDate: spec.dueDate,
     completionDate: spec.completionDate,
     progress: spec.progress,
     description: spec.description,
-    chatgptPromptStatus: deriveStepStatus(idx > promptIdx, idx === promptIdx),
-    claudeBuildStatus: deriveStepStatus(
-      idx > buildIdx,
-      idx === buildIdx || idx === builtIdx,
-    ),
+    chatgptPromptStatus: 'Not Started',
+    claudeBuildStatus: claudeWorkStarted ? 'In Progress' : 'Not Started',
     agentIntegrationRequired: spec.agentIntegrationRequired,
-    agentIntegrationStatus,
-    vipulApprovalStatus,
-    chiraagReviewStatus,
-    clientFeedbackStatus,
+    agentIntegrationStatus: 'Not Required',
+    vipulApprovalStatus: spec.vipulApprovalStatus ?? 'Pending',
+    chiraagReviewStatus: spec.chiraagReviewStatus ?? 'Pending',
+    clientFeedbackStatus: spec.clientFeedbackStatus ?? 'No Feedback Yet',
     improvementCount: 0,
     links: spec.links ?? [],
     createdAt: `${spec.startDate}T09:00:00.000Z`,
@@ -1955,45 +1922,29 @@ const READINESS_LABELS = [
 function buildReadiness(items: WorkItem[]): DemoReadinessItem[] {
   const out: DemoReadinessItem[] = [];
   items.forEach((wi) => {
-    const idx = stageIndexOf(wi.currentStage);
+    const live = wi.liveOnMunshot;
+    const claudeDone = wi.claudeWorkStarted && wi.liveOnMunshot;
     READINESS_LABELS.forEach((label) => {
       let status: DemoReadinessItem['status'] = 'Pending';
       switch (label) {
         case 'UI complete':
-          status = idx >= stageIndexOf('Dashboard/Agent Built') ? 'Done' : 'Pending';
-          break;
         case 'Data connected / mock marked':
-          status = idx >= stageIndexOf('Dashboard/Agent Built') ? 'Done' : 'Pending';
-          break;
         case 'Exports working':
-          status = idx >= stageIndexOf('Team Review') ? 'Done' : 'Pending';
+        case 'Bugs fixed':
+          status = claudeDone ? 'Done' : wi.claudeWorkStarted ? 'Pending' : 'Pending';
           break;
         case 'Agent integration done / not required':
-          status = !wi.agentIntegrationRequired
-            ? 'Not Required'
-            : wi.agentIntegrationStatus === 'Done'
-              ? 'Done'
-              : 'Pending';
-          break;
-        case 'Bugs fixed':
-          status = idx >= stageIndexOf('Team Review') ? 'Done' : 'Pending';
+          status = 'Not Required';
           break;
         case 'Vipul approved':
-          status = wi.vipulApprovalStatus === 'Approved' ? 'Done' : 'Pending';
-          break;
         case 'Chiraag reviewed':
-          status = wi.chiraagReviewStatus === 'Reviewed' ? 'Done' : 'Pending';
+          status = live ? 'Done' : 'Pending';
           break;
         case 'Client feedback handled':
-          status =
-            wi.clientFeedbackStatus === 'Addressed'
-              ? 'Done'
-              : wi.clientFeedbackStatus === 'No Feedback Yet'
-                ? 'Not Required'
-                : 'Pending';
+          status = live ? 'Pending' : 'Not Required';
           break;
         case 'PPT / Excel tested':
-          status = idx >= stageIndexOf('Vipul Approval') ? 'Done' : 'Pending';
+          status = live ? 'Done' : 'Pending';
           break;
       }
       out.push({
@@ -2015,9 +1966,6 @@ function buildReadiness(items: WorkItem[]): DemoReadinessItem[] {
 
 function stageEventType(stage: WorkflowStage): TimelineEventType {
   if (stage === 'Live on Munshot') return 'went_live';
-  if (stage === 'Vipul Approval') return 'approval';
-  if (stage === 'Chiraag Review') return 'review';
-  if (stage === 'Final Completion') return 'completed';
   return 'stage_change';
 }
 

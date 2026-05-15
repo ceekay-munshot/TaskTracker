@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ListChecks, Plus, X } from 'lucide-react';
 import {
-  APPROVAL_STATUSES,
-  CLIENT_FEEDBACK_STATUSES,
   PRIORITIES,
-  REVIEW_STATUSES,
-  STEP_STATUSES,
-  WORKFLOW_STAGES,
   WORK_ITEM_STATUSES,
   WORK_ITEM_TYPES,
   type WorkItem,
@@ -104,20 +99,16 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
       pocId: defaultClient?.pocs[0]?.id ?? null,
       ownerId: '',
       priority: 'Medium',
-      currentStage: 'Client Meeting',
+      clientMeetingDone: false,
+      claudeWorkStarted: false,
+      liveOnMunshot: false,
+      statusNote: '',
       status: 'Not Started',
       startDate: todayISO(),
       dueDate: todayISO(),
       completionDate: null,
       progress: 0,
       description: '',
-      chatgptPromptStatus: 'Not Started',
-      claudeBuildStatus: 'Not Started',
-      agentIntegrationRequired: false,
-      agentIntegrationStatus: 'Not Required',
-      vipulApprovalStatus: 'Pending',
-      chiraagReviewStatus: 'Pending',
-      clientFeedbackStatus: 'No Feedback Yet',
       links: [],
       ...prefill,
     };
@@ -134,20 +125,16 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
               pocId: editing.pocId,
               ownerId: editing.ownerId,
               priority: editing.priority,
-              currentStage: editing.currentStage,
+              clientMeetingDone: editing.clientMeetingDone,
+              claudeWorkStarted: editing.claudeWorkStarted,
+              liveOnMunshot: editing.liveOnMunshot,
+              statusNote: editing.statusNote,
               status: editing.status,
               startDate: editing.startDate,
               dueDate: editing.dueDate,
               completionDate: editing.completionDate,
               progress: editing.progress,
               description: editing.description,
-              chatgptPromptStatus: editing.chatgptPromptStatus,
-              claudeBuildStatus: editing.claudeBuildStatus,
-              agentIntegrationRequired: editing.agentIntegrationRequired,
-              agentIntegrationStatus: editing.agentIntegrationStatus,
-              vipulApprovalStatus: editing.vipulApprovalStatus,
-              chiraagReviewStatus: editing.chiraagReviewStatus,
-              clientFeedbackStatus: editing.clientFeedbackStatus,
               links: editing.links,
             }
           : emptyDraft(),
@@ -292,19 +279,55 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
           </Field>
         </section>
 
+        {/* Checkpoints */}
+        <section className="space-y-3 border-t border-ink-100 pt-4">
+          <div>
+            <p className="section-title">Workflow checkpoints</p>
+            <p className="text-[11px] text-ink-400">
+              Three simple flags — toggle on as each step is done
+            </p>
+          </div>
+          <div className="space-y-2 rounded-xl bg-ink-50 p-3">
+            <Toggle
+              checked={draft.clientMeetingDone}
+              onChange={(checked) => set({ clientMeetingDone: checked })}
+              label="Client meeting done"
+              description="Requirements discussed and captured"
+            />
+            <Toggle
+              checked={draft.claudeWorkStarted}
+              onChange={(checked) => set({ claudeWorkStarted: checked })}
+              label="Claude work started"
+              description="Build is in progress on this deliverable"
+            />
+            <Toggle
+              checked={draft.liveOnMunshot}
+              onChange={(checked) => set({ liveOnMunshot: checked })}
+              label="Live on Munshot"
+              description="Deliverable is deployed and live for the client"
+            />
+          </div>
+        </section>
+
+        {/* Status note */}
+        <section className="space-y-3 border-t border-ink-100 pt-4">
+          <div>
+            <p className="section-title">Current status note</p>
+            <p className="text-[11px] text-ink-400">
+              End-of-day note — what's the latest on this task?
+            </p>
+          </div>
+          <TextArea
+            value={draft.statusNote}
+            onChange={(e) => set({ statusNote: e.target.value })}
+            placeholder="e.g. Finalised data model, waiting on quarterly revenue file from client by tomorrow…"
+          />
+        </section>
+
         {/* Timeline & progress */}
         <section className="space-y-4 border-t border-ink-100 pt-4">
           <p className="section-title">Timeline & progress</p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Field label="Workflow stage">
-              <Select
-                value={draft.currentStage}
-                onChange={(v) =>
-                  set({ currentStage: v as WorkItem['currentStage'] })
-                }
-                options={toOptions(WORKFLOW_STAGES)}
-              />
-            </Field>
             <Field label="Status">
               <Select
                 value={draft.status}
@@ -340,91 +363,6 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
                 onChange={(e) =>
                   set({ completionDate: e.target.value || null })
                 }
-              />
-            </Field>
-          </div>
-        </section>
-
-        {/* Delivery pipeline */}
-        <section className="space-y-4 border-t border-ink-100 pt-4">
-          <p className="section-title">Delivery pipeline status</p>
-          <div className="rounded-xl bg-ink-50 p-3">
-            <Toggle
-              checked={draft.agentIntegrationRequired}
-              onChange={(checked) =>
-                set({
-                  agentIntegrationRequired: checked,
-                  agentIntegrationStatus: checked
-                    ? draft.agentIntegrationStatus === 'Not Required'
-                      ? 'Not Started'
-                      : draft.agentIntegrationStatus
-                    : 'Not Required',
-                })
-              }
-              label="Munshot agent integration required"
-              description="Toggle on if this deliverable needs a Munshot agent wired in"
-            />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Field label="ChatGPT master prompt">
-              <Select
-                value={draft.chatgptPromptStatus}
-                onChange={(v) =>
-                  set({ chatgptPromptStatus: v as WorkItem['chatgptPromptStatus'] })
-                }
-                options={toOptions(STEP_STATUSES)}
-              />
-            </Field>
-            <Field label="Claude build">
-              <Select
-                value={draft.claudeBuildStatus}
-                onChange={(v) =>
-                  set({ claudeBuildStatus: v as WorkItem['claudeBuildStatus'] })
-                }
-                options={toOptions(STEP_STATUSES)}
-              />
-            </Field>
-            <Field label="Agent integration">
-              <Select
-                value={draft.agentIntegrationStatus}
-                onChange={(v) =>
-                  set({
-                    agentIntegrationStatus:
-                      v as WorkItem['agentIntegrationStatus'],
-                  })
-                }
-                options={toOptions(STEP_STATUSES)}
-                disabled={!draft.agentIntegrationRequired}
-              />
-            </Field>
-            <Field label="Vipul approval">
-              <Select
-                value={draft.vipulApprovalStatus}
-                onChange={(v) =>
-                  set({ vipulApprovalStatus: v as WorkItem['vipulApprovalStatus'] })
-                }
-                options={toOptions(APPROVAL_STATUSES)}
-              />
-            </Field>
-            <Field label="Chiraag review">
-              <Select
-                value={draft.chiraagReviewStatus}
-                onChange={(v) =>
-                  set({ chiraagReviewStatus: v as WorkItem['chiraagReviewStatus'] })
-                }
-                options={toOptions(REVIEW_STATUSES)}
-              />
-            </Field>
-            <Field label="Client feedback">
-              <Select
-                value={draft.clientFeedbackStatus}
-                onChange={(v) =>
-                  set({
-                    clientFeedbackStatus:
-                      v as WorkItem['clientFeedbackStatus'],
-                  })
-                }
-                options={toOptions(CLIENT_FEEDBACK_STATUSES)}
               />
             </Field>
           </div>
