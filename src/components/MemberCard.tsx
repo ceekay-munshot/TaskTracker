@@ -153,7 +153,9 @@ export function MemberCard({ member }: { member: TeamMember }) {
       </div>
 
       <p className="mt-3 text-[11px] text-ink-400">
-        {timeSince(member.joinDate)} on the desk
+        {member.role === 'Founder'
+          ? 'Since inception'
+          : `${timeSince(member.joinDate)} on the desk`}
         {manager ? ` · reports to ${manager.name}` : ' · founder'}
       </p>
     </motion.div>
