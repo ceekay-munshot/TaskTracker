@@ -12,6 +12,7 @@ import {
   LayoutList,
   Plus,
   Rocket,
+  Trash2,
   Workflow,
 } from 'lucide-react';
 import {
@@ -23,6 +24,8 @@ import {
 } from '@/types';
 import { useStore } from '@/store/StoreContext';
 import { useUI } from '@/store/UIContext';
+import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { Panel, SectionHeading } from '@/components/ui/Panel';
 import { ExportButtons } from '@/components/ui/ExportButtons';
@@ -49,10 +52,27 @@ const HEALTH_DOT: Record<HealthScore, string> = {
 };
 
 export function GlobalWorkTracker() {
-  const { data, derived, getMember, getClient } = useStore();
+  const { data, derived, getMember, getClient, deleteAllWorkItems } = useStore();
   const ui = useUI();
+  const toast = useToast();
+  const confirm = useConfirm();
 
   const [view, setView] = useState<WorkView>('table');
+
+  const handleDeleteAll = async () => {
+    const count = data.workItems.length;
+    if (count === 0) return;
+    const ok = await confirm({
+      title: `Delete all ${count} work items?`,
+      description:
+        'Every dashboard, agent and workflow — along with their tasks, feedback, transfers and timeline — will be permanently removed. This cannot be undone.',
+      confirmLabel: 'Delete everything',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    deleteAllWorkItems();
+    toast.success('Work pipeline cleared', `${count} work items removed`);
+  };
   const [search, setSearch] = useState('');
   const [owner, setOwner] = useState('');
   const [client, setClient] = useState('');
@@ -363,15 +383,27 @@ export function GlobalWorkTracker() {
         icon={Workflow}
         iconColor="indigo"
         action={
-          <SegmentedControl<WorkView>
-            options={[
-              { value: 'table', label: 'Table', icon: LayoutList },
-              { value: 'kanban', label: 'Kanban', icon: KanbanSquare },
-              { value: 'timeline', label: 'Timeline', icon: GitBranch },
-            ]}
-            value={view}
-            onChange={setView}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <SegmentedControl<WorkView>
+              options={[
+                { value: 'table', label: 'Table', icon: LayoutList },
+                { value: 'kanban', label: 'Kanban', icon: KanbanSquare },
+                { value: 'timeline', label: 'Timeline', icon: GitBranch },
+              ]}
+              value={view}
+              onChange={setView}
+            />
+            <button
+              type="button"
+              onClick={handleDeleteAll}
+              disabled={data.workItems.length === 0}
+              className="btn-danger"
+              title="Delete every work item in the pipeline"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete all
+            </button>
+          </div>
         }
       >
         {view === 'table' && <WorkItemTable items={filteredItems} />}

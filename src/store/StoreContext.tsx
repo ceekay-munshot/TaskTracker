@@ -185,6 +185,7 @@ interface StoreContextValue {
   addWorkItem: (input: WorkItemInput) => WorkItem;
   updateWorkItem: (id: string, patch: Partial<WorkItem>) => void;
   deleteWorkItem: (id: string) => void;
+  deleteAllWorkItems: () => void;
 
   addTask: (input: Omit<Task, 'id' | 'createdAt'>) => Task;
   updateTask: (id: string, patch: Partial<Task>) => void;
@@ -601,6 +602,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               ...r,
               linkedWorkItemIds: r.linkedWorkItemIds.filter((w) => w !== id),
             }
+          : r,
+      ),
+    }));
+  }, []);
+
+  const deleteAllWorkItems = useCallback(() => {
+    setData((d) => ({
+      ...d,
+      workItems: [],
+      tasks: d.tasks.filter((t) => !t.workItemId),
+      feedback: [],
+      transfers: [],
+      timelineEvents: [],
+      demoReadinessItems: [],
+      recordings: d.recordings.map((r) =>
+        r.linkedWorkItemIds.length
+          ? { ...r, linkedWorkItemIds: [] }
           : r,
       ),
     }));
@@ -1316,6 +1334,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addWorkItem,
       updateWorkItem,
       deleteWorkItem,
+      deleteAllWorkItems,
       addTask,
       updateTask,
       deleteTask,
@@ -1361,6 +1380,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addWorkItem,
       updateWorkItem,
       deleteWorkItem,
+      deleteAllWorkItems,
       addTask,
       updateTask,
       deleteTask,
