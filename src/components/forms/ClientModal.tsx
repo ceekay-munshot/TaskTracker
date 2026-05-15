@@ -73,7 +73,7 @@ export function ClientModal({ open, onClose, editing, prefill }: Props) {
   const removePoc = (id: string) =>
     setDraft((d) => ({
       ...d,
-      pocs: d.pocs.length <= 1 ? d.pocs : d.pocs.filter((p) => p.id !== id),
+      pocs: d.pocs.filter((p) => p.id !== id),
     }));
 
   const submit = () => {
@@ -88,9 +88,6 @@ export function ClientModal({ open, onClose, editing, prefill }: Props) {
         role: p.role.trim(),
       }))
       .filter((p) => p.name);
-    if (cleanedPocs.length === 0) {
-      errs.pocs = 'At least one point of contact is required';
-    }
     cleanedPocs.forEach((p) => {
       if (p.email && !/^\S+@\S+\.\S+$/.test(p.email)) {
         errs[`poc-email-${p.id}`] = 'Enter a valid email';
@@ -194,9 +191,6 @@ export function ClientModal({ open, onClose, editing, prefill }: Props) {
               Add POC
             </button>
           </div>
-          {errors.pocs && (
-            <p className="text-xs font-medium text-rose-500">{errors.pocs}</p>
-          )}
           <div className="space-y-3">
             {draft.pocs.map((p, idx) => (
               <div
@@ -210,8 +204,7 @@ export function ClientModal({ open, onClose, editing, prefill }: Props) {
                   <button
                     type="button"
                     onClick={() => removePoc(p.id)}
-                    disabled={draft.pocs.length <= 1}
-                    className="icon-btn text-rose-500 disabled:opacity-30"
+                    className="icon-btn text-rose-500"
                     title="Remove this POC"
                   >
                     <Trash2 className="h-4 w-4" />
