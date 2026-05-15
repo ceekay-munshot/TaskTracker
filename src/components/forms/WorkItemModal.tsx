@@ -399,14 +399,6 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
                 onChange={(e) => set({ dueDate: e.target.value })}
               />
             </Field>
-            <Field label="Completion date" hint="Set when fully completed">
-              <DateInput
-                value={draft.completionDate ?? ''}
-                onChange={(e) =>
-                  set({ completionDate: e.target.value || null })
-                }
-              />
-            </Field>
           </div>
         </section>
 
