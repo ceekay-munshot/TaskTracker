@@ -54,8 +54,8 @@ export function CommandCenter() {
       unassigned: wi.filter((w) => !w.ownerId && w.status !== 'Completed'),
       live: wi.filter((w) => w.status === 'Live'),
       blocked: wi.filter((w) => w.status === 'Blocked'),
-      waitingVipul: wi.filter((w) => w.currentStage === 'Vipul Approval'),
-      waitingChiraag: wi.filter((w) => w.currentStage === 'Chiraag Review'),
+      inMeeting: wi.filter((w) => w.currentStage === 'Client Meeting'),
+      inBuild: wi.filter((w) => w.currentStage === 'Claude Work'),
       feedbackPending: data.feedback.filter(isBacklogFeedback),
       pendingTransfers: data.transfers.filter((t) => t.status === 'Pending'),
       redHealth,
@@ -168,8 +168,8 @@ export function CommandCenter() {
       { label: 'Live on Munshot', value: stats.live.length },
       { label: 'Blocked', value: stats.blocked.length },
       { label: 'Red health', value: stats.redHealth.length },
-      { label: 'Awaiting Vipul', value: stats.waitingVipul.length },
-      { label: 'Awaiting Chiraag', value: stats.waitingChiraag.length },
+      { label: 'In client meeting', value: stats.inMeeting.length },
+      { label: 'In Claude build', value: stats.inBuild.length },
       { label: 'Pending transfers', value: stats.pendingTransfers.length },
       { label: 'Demo-ready', value: stats.demoReady.length },
       { label: 'Feedback open', value: stats.feedbackPending.length },
@@ -229,14 +229,14 @@ export function CommandCenter() {
           onClick={() => navigate('/work')}
         />
         <MetricCard
-          label="Awaiting Vipul"
-          value={stats.waitingVipul.length}
+          label="In client meeting"
+          value={stats.inMeeting.length}
           icon={ShieldCheck}
           color="amber"
         />
         <MetricCard
-          label="Awaiting Chiraag"
-          value={stats.waitingChiraag.length}
+          label="In Claude build"
+          value={stats.inBuild.length}
           icon={ClipboardCheck}
           color="violet"
         />

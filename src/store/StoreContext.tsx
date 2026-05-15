@@ -16,9 +16,7 @@ import {
 import { cloneSeedData } from '@/data/mockData';
 import {
   type AppData,
-  type ApprovalStatus,
   type Client,
-  type ClientFeedbackStatus,
   type ClientMeetingRecording,
   type DemoReadinessItem,
   type DemoReadinessResult,
@@ -27,8 +25,6 @@ import {
   type Meeting,
   type MemberPerformanceStats,
   type MemberWorkloadStats,
-  type ReviewStatus,
-  type StepStatus,
   type Task,
   type TeamMember,
   type TimelineEvent,
@@ -87,16 +83,60 @@ function migrateClient(raw: LegacyClient): Client {
   return { ...(rest as Omit<Client, 'pocs'>), pocs };
 }
 
+const LEGACY_STAGE_MAP: Record<string, WorkflowStage> = {
+  'Client Meeting': 'Client Meeting',
+  'Recording Reviewed': 'Client Meeting',
+  'Requirement Understood': 'Claude Work',
+  'ChatGPT Master Prompt Created': 'Claude Work',
+  'Claude Build Started': 'Claude Work',
+  'Dashboard/Agent Built': 'Claude Work',
+  'Agent Integration Optional': 'Claude Work',
+  'Team Review': 'Claude Work',
+  'Vipul Approval': 'Claude Work',
+  'Live on Munshot': 'Live on Munshot',
+  'Chiraag Review': 'Live on Munshot',
+  'Client Demo': 'Live on Munshot',
+  'Client Feedback': 'Live on Munshot',
+  'Improvement Backlog': 'Live on Munshot',
+  'Final Completion': 'Live on Munshot',
+  'Claude Work': 'Claude Work',
+};
+
+function mapLegacyStage(stage: string): WorkflowStage {
+  return LEGACY_STAGE_MAP[stage] ?? 'Client Meeting';
+}
+
+function migrateWorkItem(w: WorkItem): WorkItem {
+  const stage = mapLegacyStage(w.currentStage as unknown as string);
+  const live = w.liveOnMunshot ?? stage === 'Live on Munshot';
+  const claude = w.claudeWorkStarted ?? stage !== 'Client Meeting';
+  const meeting = w.clientMeetingDone ?? stage !== 'Client Meeting';
+  return {
+    ...w,
+    pocId: w.pocId ?? null,
+    currentStage: stage,
+    clientMeetingDone: meeting,
+    claudeWorkStarted: claude,
+    liveOnMunshot: live,
+    statusNote: w.statusNote ?? '',
+    statusNoteUpdatedAt: w.statusNoteUpdatedAt ?? null,
+  };
+}
+
 function ensureShape(raw: Partial<AppData>): AppData {
   const fallbackStages = cloneSeedData().workflowStages;
   const clients = (raw.clients ?? []) as LegacyClient[];
+  const rawStages = raw.workflowStages ?? [];
+  const knownStages = new Set<string>([
+    'Client Meeting',
+    'Claude Work',
+    'Live on Munshot',
+  ]);
+  const filteredStages = rawStages.filter((s) => knownStages.has(s.stage));
   return {
     teamMembers: raw.teamMembers ?? [],
     clients: clients.map(migrateClient),
-    workItems: (raw.workItems ?? []).map((w) => ({
-      ...w,
-      pocId: w.pocId ?? null,
-    })),
+    workItems: (raw.workItems ?? []).map(migrateWorkItem),
     tasks: raw.tasks ?? [],
     meetings: raw.meetings ?? [],
     recordings: raw.recordings ?? [],
@@ -105,8 +145,8 @@ function ensureShape(raw: Partial<AppData>): AppData {
     timelineEvents: raw.timelineEvents ?? [],
     demoReadinessItems: raw.demoReadinessItems ?? [],
     workflowStages:
-      raw.workflowStages && raw.workflowStages.length > 0
-        ? raw.workflowStages
+      filteredStages.length === knownStages.size
+        ? filteredStages
         : fallbackStages,
   };
 }
@@ -153,20 +193,16 @@ export interface WorkItemInput {
   pocId: string | null;
   ownerId: string;
   priority: Priority;
-  currentStage: WorkflowStage;
+  clientMeetingDone: boolean;
+  claudeWorkStarted: boolean;
+  liveOnMunshot: boolean;
+  statusNote: string;
   status: WorkItemStatus;
   startDate: string;
   dueDate: string;
   completionDate: string | null;
   progress: number;
   description: string;
-  chatgptPromptStatus: StepStatus;
-  claudeBuildStatus: StepStatus;
-  agentIntegrationRequired: boolean;
-  agentIntegrationStatus: StepStatus;
-  vipulApprovalStatus: ApprovalStatus;
-  chiraagReviewStatus: ReviewStatus;
-  clientFeedbackStatus: ClientFeedbackStatus;
   links: WorkLink[];
 }
 
@@ -472,15 +508,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addWorkItem = useCallback((input: WorkItemInput) => {
     const id = uid('wi');
     const now = nowISO();
+    const stage: WorkflowStage = input.liveOnMunshot
+      ? 'Live on Munshot'
+      : input.claudeWorkStarted || input.clientMeetingDone
+        ? 'Claude Work'
+        : 'Client Meeting';
     const workItem: WorkItem = {
       ...input,
       id,
+      currentStage: stage,
       originalOwnerId: input.ownerId,
       previousOwnerIds: [],
       transferHistoryIds: [],
       linkedMeetingRecordingIds: [],
       hasPendingTransfer: false,
       improvementCount: 0,
+      statusNoteUpdatedAt: input.statusNote.trim() ? now : null,
+      chatgptPromptStatus: 'Not Started',
+      claudeBuildStatus: input.claudeWorkStarted ? 'In Progress' : 'Not Started',
+      agentIntegrationRequired: false,
+      agentIntegrationStatus: 'Not Required',
+      vipulApprovalStatus: 'Pending',
+      chiraagReviewStatus: 'Pending',
+      clientFeedbackStatus: 'No Feedback Yet',
       createdAt: now,
       updatedAt: now,
     };
@@ -489,11 +539,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         id: uid('dr'),
         workItemId: id,
         label,
-        status:
-          label === 'Agent integration done / not required' &&
-          !input.agentIntegrationRequired
-            ? 'Not Required'
-            : 'Pending',
+        status: 'Pending',
         ownerId: input.ownerId,
         notes: '',
       }),
@@ -520,11 +566,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const existing = d.workItems.find((w) => w.id === id);
         if (!existing) return d;
 
+        const now = nowISO();
         const next: WorkItem = {
           ...existing,
           ...patch,
-          updatedAt: nowISO(),
+          updatedAt: now,
         };
+
+        // Keep currentStage in sync with the 3 checkpoint booleans
+        const stage: WorkflowStage = next.liveOnMunshot
+          ? 'Live on Munshot'
+          : next.claudeWorkStarted || next.clientMeetingDone
+            ? 'Claude Work'
+            : 'Client Meeting';
+        next.currentStage = stage;
+
+        // Stamp status-note when its text actually changes
+        if (
+          patch.statusNote !== undefined &&
+          patch.statusNote !== existing.statusNote
+        ) {
+          next.statusNoteUpdatedAt = patch.statusNote.trim() ? now : null;
+        }
 
         // auto-set completion date
         if (
@@ -539,19 +602,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
 
         const events: TimelineEvent[] = [];
-        if (patch.currentStage && patch.currentStage !== existing.currentStage) {
+        if (stage !== existing.currentStage) {
           events.push(
             makeTimelineEvent(
               id,
-              patch.currentStage === 'Live on Munshot'
-                ? 'went_live'
-                : patch.currentStage === 'Final Completion'
-                  ? 'completed'
-                  : 'stage_change',
-              `Stage moved to: ${patch.currentStage}`,
+              stage === 'Live on Munshot' ? 'went_live' : 'stage_change',
+              `Stage moved to: ${stage}`,
               `Workflow stage updated from "${existing.currentStage}".`,
               next.ownerId,
-              { stage: patch.currentStage },
+              { stage },
             ),
           );
         }

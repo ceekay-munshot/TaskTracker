@@ -4,7 +4,6 @@
  * human-readable reasons that drove the score.
  */
 import type { Client, HealthResult, WorkItem } from '@/types';
-import { WORKFLOW_STAGES } from '@/types';
 import { daysBetween, daysOverdue, daysUntil, todayISO } from './dates';
 
 export interface HealthContext {
@@ -12,12 +11,6 @@ export interface HealthContext {
   ownerActiveCount: number;
   client: Client | undefined;
 }
-
-const stageIndex = (stage: string): number =>
-  WORKFLOW_STAGES.indexOf(stage as (typeof WORKFLOW_STAGES)[number]);
-
-const VIPUL_STAGE = stageIndex('Vipul Approval');
-const CHIRAAG_STAGE = stageIndex('Chiraag Review');
 
 export function computeHealth(
   item: WorkItem,
@@ -57,24 +50,6 @@ export function computeHealth(
     reasons.push('Currently blocked');
   }
 
-  // Approvals & reviews
-  const idx = stageIndex(item.currentStage);
-  if (item.vipulApprovalStatus === 'Pending' && idx >= VIPUL_STAGE) {
-    points += 12;
-    reasons.push('Awaiting Vipul approval');
-  }
-  if (item.vipulApprovalStatus === 'Rejected') {
-    points += 16;
-    reasons.push('Vipul rejected — needs rework');
-  }
-  if (item.chiraagReviewStatus === 'Pending' && idx >= CHIRAAG_STAGE) {
-    points += 8;
-    reasons.push('Awaiting Chiraag review');
-  }
-  if (item.chiraagReviewStatus === 'Changes Requested') {
-    points += 12;
-    reasons.push('Chiraag requested changes');
-  }
   if (item.hasPendingTransfer) {
     points += 9;
     reasons.push('Pending ownership transfer');
