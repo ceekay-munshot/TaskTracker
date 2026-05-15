@@ -13,6 +13,7 @@ import { Modal } from '@/components/ui/Modal';
 import {
   DateInput,
   Field,
+  MultiSelect,
   Select,
   TextArea,
   TextInput,
@@ -20,7 +21,6 @@ import {
   toOptions,
 } from '@/components/ui/Field';
 import { todayISO } from '@/utils/dates';
-import { cn } from '@/utils/cn';
 
 interface Props {
   open: boolean;
@@ -155,32 +155,6 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
     c.pocs.map((p) => ({ poc: p, client: c })),
   );
 
-  const toggleClient = (id: string) => {
-    setDraft((d) => {
-      const next = d.clientIds.includes(id)
-        ? d.clientIds.filter((c) => c !== id)
-        : [...d.clientIds, id];
-      const allowedPocIds = data.clients
-        .filter((c) => next.includes(c.id))
-        .flatMap((c) => c.pocs.map((p) => p.id));
-      const keptPocIds = d.pocIds.filter((p) => allowedPocIds.includes(p));
-      return {
-        ...d,
-        clientIds: next,
-        pocIds: keptPocIds,
-      };
-    });
-  };
-
-  const togglePoc = (id: string) => {
-    setDraft((d) => ({
-      ...d,
-      pocIds: d.pocIds.includes(id)
-        ? d.pocIds.filter((p) => p !== id)
-        : [...d.pocIds, id],
-    }));
-  };
-
   const submit = () => {
     const errs: Record<string, string> = {};
     if (!draft.title.trim()) errs.title = 'Title is required';
@@ -249,85 +223,55 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
               label="Clients"
               required
               error={errors.clientIds}
-              hint="Tap each client this work is for — appears on every client's tab"
+              hint="Tick each client this work is for — appears on every client's tab"
               className="sm:col-span-2"
             >
-              <div
-                className={cn(
-                  'flex flex-wrap gap-1.5 rounded-xl border p-2',
-                  errors.clientIds
-                    ? 'border-rose-400 bg-rose-50/40'
-                    : 'border-ink-200 bg-white',
-                )}
-              >
-                {data.clients.length === 0 ? (
-                  <span className="text-xs text-ink-400">No clients yet</span>
-                ) : (
-                  data.clients.map((c) => {
-                    const on = draft.clientIds.includes(c.id);
-                    return (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => toggleClient(c.id)}
-                        className={cn(
-                          'rounded-full px-2.5 py-1 text-xs font-semibold transition',
-                          on
-                            ? 'bg-brand-500 text-white shadow-sm'
-                            : 'bg-ink-100 text-ink-600 hover:bg-ink-200',
-                        )}
-                      >
-                        {c.name}
-                      </button>
-                    );
-                  })
-                )}
-              </div>
+              <MultiSelect
+                value={draft.clientIds}
+                onChange={(next) => {
+                  const allowedPocIds = data.clients
+                    .filter((c) => next.includes(c.id))
+                    .flatMap((c) => c.pocs.map((p) => p.id));
+                  setDraft((d) => ({
+                    ...d,
+                    clientIds: next,
+                    pocIds: d.pocIds.filter((p) => allowedPocIds.includes(p)),
+                  }));
+                }}
+                options={data.clients.map((c) => ({
+                  value: c.id,
+                  label: c.name,
+                }))}
+                placeholder="Select clients…"
+                invalid={!!errors.clientIds}
+                emptyHint="No clients yet"
+                summary={(count) =>
+                  count === 1 ? '1 client' : `${count} clients`
+                }
+              />
             </Field>
             <Field
               label="Client POCs"
               hint={
                 availablePocs.length === 0
                   ? 'No POCs on file for the selected client(s)'
-                  : 'Tap each contact you need to report this work to'
+                  : 'Tick each contact you need to report this work to'
               }
               className="sm:col-span-2"
             >
-              <div className="flex flex-wrap gap-1.5 rounded-xl border border-ink-200 bg-white p-2">
-                {availablePocs.length === 0 ? (
-                  <span className="text-xs text-ink-400">
-                    Pick a client first
-                  </span>
-                ) : (
-                  availablePocs.map(({ poc, client }) => {
-                    const on = draft.pocIds.includes(poc.id);
-                    return (
-                      <button
-                        key={poc.id}
-                        type="button"
-                        onClick={() => togglePoc(poc.id)}
-                        title={`${client.name}${poc.role ? ` — ${poc.role}` : ''}`}
-                        className={cn(
-                          'rounded-full px-2.5 py-1 text-xs font-semibold transition',
-                          on
-                            ? 'bg-brand-500 text-white shadow-sm'
-                            : 'bg-ink-100 text-ink-600 hover:bg-ink-200',
-                        )}
-                      >
-                        {poc.name}
-                        <span
-                          className={cn(
-                            'ml-1 text-[10px] font-medium',
-                            on ? 'text-white/80' : 'text-ink-400',
-                          )}
-                        >
-                          · {client.name}
-                        </span>
-                      </button>
-                    );
-                  })
-                )}
-              </div>
+              <MultiSelect
+                value={draft.pocIds}
+                onChange={(next) => set({ pocIds: next })}
+                options={availablePocs.map(({ poc, client }) => ({
+                  value: poc.id,
+                  label: `${poc.name}${poc.role ? ` · ${poc.role}` : ''} · ${client.name}`,
+                }))}
+                placeholder="Select POCs…"
+                emptyHint="Pick a client first"
+                summary={(count) =>
+                  count === 1 ? '1 POC' : `${count} POCs`
+                }
+              />
             </Field>
             <Field
               label="Owner"

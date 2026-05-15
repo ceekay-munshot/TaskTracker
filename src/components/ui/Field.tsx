@@ -1,11 +1,13 @@
 import {
+  useEffect,
+  useRef,
   useState,
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react';
-import { ChevronDown, Plus, X } from 'lucide-react';
+import { Check, ChevronDown, Plus, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
@@ -136,6 +138,125 @@ export function Select({
         ))}
       </select>
       <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+    </div>
+  );
+}
+
+/* ----------------------------- MultiSelect ------------------------------ */
+
+interface MultiSelectProps {
+  value: string[];
+  onChange: (next: string[]) => void;
+  options: SelectOption[];
+  placeholder?: string;
+  invalid?: boolean;
+  emptyHint?: string;
+  /** Shown when 1+ selected. Defaults to "N selected". */
+  summary?: (count: number, selectedLabels: string[]) => string;
+}
+
+export function MultiSelect({
+  value,
+  onChange,
+  options,
+  placeholder = 'Select…',
+  invalid,
+  emptyHint,
+  summary,
+}: MultiSelectProps) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const toggle = (id: string) => {
+    onChange(
+      value.includes(id) ? value.filter((v) => v !== id) : [...value, id],
+    );
+  };
+
+  const selectedLabels = options
+    .filter((o) => value.includes(o.value))
+    .map((o) => o.label);
+
+  const triggerText =
+    value.length === 0
+      ? placeholder
+      : summary
+        ? summary(value.length, selectedLabels)
+        : selectedLabels.length <= 2
+          ? selectedLabels.join(', ')
+          : `${selectedLabels.length} selected`;
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={cn(
+          'input flex w-full cursor-pointer items-center justify-between pr-9 text-left',
+          value.length === 0 && 'text-ink-400',
+          invalid &&
+            'border-rose-400 focus:border-rose-400 focus:ring-rose-100',
+        )}
+      >
+        <span className="truncate">{triggerText}</span>
+      </button>
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+      {open && (
+        <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 max-h-72 overflow-y-auto rounded-xl border border-ink-200 bg-white p-1 shadow-card">
+          {options.length === 0 ? (
+            <p className="px-2.5 py-3 text-center text-xs text-ink-400">
+              {emptyHint ?? 'Nothing to pick yet'}
+            </p>
+          ) : (
+            options.map((opt) => {
+              const checked = value.includes(opt.value);
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => toggle(opt.value)}
+                  className={cn(
+                    'flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs transition',
+                    checked
+                      ? 'bg-brand-50 text-brand-700'
+                      : 'text-ink-700 hover:bg-ink-50',
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'flex h-4 w-4 shrink-0 items-center justify-center rounded border',
+                      checked
+                        ? 'border-brand-500 bg-brand-500 text-white'
+                        : 'border-ink-300 bg-white',
+                    )}
+                  >
+                    {checked && <Check className="h-3 w-3" />}
+                  </span>
+                  <span className="truncate">{opt.label}</span>
+                </button>
+              );
+            })
+          )}
+        </div>
+      )}
     </div>
   );
 }
