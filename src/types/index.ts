@@ -12,6 +12,7 @@ export const TEAM_ROLES = [
   'Founder',
   'Team Lead - Intern',
   'Equity Research Intern',
+  'Tech Team',
 ] as const;
 export type TeamRole = (typeof TEAM_ROLES)[number];
 
