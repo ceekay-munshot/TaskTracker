@@ -63,10 +63,15 @@ export function TeamMemberModal({ open, onClose, editing, prefill }: Props) {
     setDraft((d) => ({ ...d, ...patch }));
 
   // The founder's joinDate is the company's start; fall back to the
-  // documented inception date if no founder exists yet.
+  // documented inception date if no founder exists (or has a blank join date).
   const inceptionDate =
-    data.teamMembers.find((m) => m.role === 'Founder')?.joinDate ??
+    data.teamMembers.find((m) => m.role === 'Founder')?.joinDate ||
     '2023-01-10';
+
+  const setSinceInception = () => {
+    set({ joinDate: inceptionDate });
+    toast.info('Set to inception', `Join date set to ${inceptionDate}`);
+  };
 
   const submit = () => {
     const errs: Record<string, string> = {};
@@ -190,7 +195,7 @@ export function TeamMemberModal({ open, onClose, editing, prefill }: Props) {
               />
               <button
                 type="button"
-                onClick={() => set({ joinDate: inceptionDate })}
+                onClick={setSinceInception}
                 title={`Set join date to ${inceptionDate}`}
                 className="btn-ghost shrink-0 whitespace-nowrap"
               >
