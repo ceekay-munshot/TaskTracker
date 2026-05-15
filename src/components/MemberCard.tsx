@@ -1,13 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  ArrowDownLeft,
   Briefcase,
   CheckCircle2,
   Eye,
   Pencil,
   Trash2,
-  Video,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { TeamMember } from '@/types';
@@ -34,19 +32,6 @@ export function MemberCard({ member }: { member: TeamMember }) {
   const owned = data.workItems.filter((w) => w.ownerId === member.id);
   const activeWork = owned.filter((w) => w.status !== 'Completed').length;
   const completedWork = owned.filter((w) => w.status === 'Completed').length;
-  const transferIn = data.transfers.filter(
-    (t) =>
-      t.toOwnerId === member.id &&
-      (t.status === 'Approved' || t.status === 'Completed'),
-  ).length;
-  const transferOut = data.transfers.filter(
-    (t) =>
-      t.fromOwnerId === member.id &&
-      (t.status === 'Approved' || t.status === 'Completed'),
-  ).length;
-  const recordings = data.recordings.filter(
-    (r) => r.ownerId === member.id,
-  ).length;
   const workload = derived.workloadByMember.get(member.id);
   const risk = workload?.capacityRisk ?? 0;
   const manager = data.teamMembers.find((m) => m.id === member.reportsToId);
@@ -133,15 +118,9 @@ export function MemberCard({ member }: { member: TeamMember }) {
         </div>
       )}
 
-      <div className="mt-3 grid grid-cols-4 gap-2 border-t border-ink-100 pt-3">
+      <div className="mt-3 grid grid-cols-2 gap-2 border-t border-ink-100 pt-3">
         <Stat icon={Briefcase} label="Active" value={activeWork} />
         <Stat icon={CheckCircle2} label="Done" value={completedWork} />
-        <Stat
-          icon={ArrowDownLeft}
-          label="In / Out"
-          value={`${transferIn}/${transferOut}`}
-        />
-        <Stat icon={Video} label="Recs" value={recordings} />
       </div>
 
       <div className="mt-3">
