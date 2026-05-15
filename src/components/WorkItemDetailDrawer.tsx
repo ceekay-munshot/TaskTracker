@@ -74,7 +74,9 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
   const readiness = wi ? derived.readinessByItem.get(wi.id) : undefined;
   const owner = wi ? getMember(wi.ownerId) : undefined;
   const originalOwner = wi ? getMember(wi.originalOwnerId) : undefined;
-  const client = wi ? getClient(wi.clientId) : undefined;
+  const allClients = wi
+    ? wi.clientIds.map(getClient).filter((c): c is NonNullable<typeof c> => !!c)
+    : [];
 
   const tasks = wi
     ? data.tasks.filter((t) => t.workItemId === wi.id)
@@ -100,7 +102,7 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
       width="xl"
       icon={ListChecks}
       title={wi?.title ?? 'Work item'}
-      subtitle={wi ? `${wi.type} · ${client?.name ?? 'Unknown client'}` : ''}
+      subtitle={wi ? `${wi.type} · ${allClients.map((c) => c.name).join(', ') || 'Unknown client'}` : ''}
       footer={
         wi && (
           <>
@@ -197,7 +199,9 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
               </div>
             )}
             {(() => {
-              const poc = client?.pocs.find((p) => p.id === wi.pocId);
+              const poc = allClients
+                .flatMap((c) => c.pocs)
+                .find((p) => p.id === wi.pocId);
               if (!poc) return null;
               return (
                 <div>

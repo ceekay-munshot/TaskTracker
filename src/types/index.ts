@@ -237,6 +237,7 @@ export interface WorkItem {
   title: string;
   type: WorkItemType;
   clientId: string;
+  clientIds: string[];
   pocId: string | null;
   ownerId: string;
   originalOwnerId: string;

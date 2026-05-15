@@ -70,7 +70,7 @@ export function ClientDetail() {
     () =>
       client
         ? sortByKey(
-            data.workItems.filter((w) => w.clientId === client.id),
+            data.workItems.filter((w) => w.clientIds.includes(client.id)),
             (w) => w.updatedAt,
             'desc',
           )
@@ -562,7 +562,7 @@ export function ClientDetail() {
         <div className="flex flex-wrap gap-2">
           <button
             className="btn-soft"
-            onClick={() => ui.addWorkItem({ clientId: client.id })}
+            onClick={() => ui.addWorkItem({ clientIds: [client.id] })}
           >
             <Bot className="h-4 w-4" /> Add Dashboard / Agent
           </button>

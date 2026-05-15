@@ -58,7 +58,7 @@ function DueCell({ workItem }: { workItem: WorkItem }) {
 }
 
 export function WorkItemTable({ items }: { items: WorkItem[] }) {
-  const { data, getMember, getClient, deleteWorkItem } = useStore();
+  const { data, getMember, getClient, updateWorkItem, deleteWorkItem } = useStore();
   const ui = useUI();
   const confirm = useConfirm();
   const toast = useToast();
@@ -73,6 +73,25 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
       />
     );
   }
+
+  const toggleComplete = (wi: WorkItem, done: boolean) => {
+    if (done) {
+      updateWorkItem(wi.id, {
+        status: 'Completed',
+        liveOnMunshot: true,
+        claudeWorkStarted: true,
+        clientMeetingDone: true,
+        progress: 100,
+      });
+      toast.success('Marked complete', wi.title);
+    } else {
+      updateWorkItem(wi.id, {
+        status: 'In Progress',
+        completionDate: null,
+      });
+      toast.info('Reopened', wi.title);
+    }
+  };
 
   const handleDelete = async (wi: WorkItem) => {
     const ok = await confirm({
@@ -93,6 +112,7 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
       <table className="w-full min-w-[1320px] border-separate border-spacing-y-1.5 text-sm">
         <thead>
           <tr className="text-left text-[11px] font-bold uppercase tracking-wide text-ink-400">
+            <th className="w-8 px-2 pb-1" />
             <th className="px-3 pb-1">Work item</th>
             <th className="px-2 pb-1">Client</th>
             <th className="px-2 pb-1">Owner</th>
@@ -106,7 +126,9 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
         <tbody>
           {items.map((wi) => {
             const owner = getMember(wi.ownerId);
-            const client = getClient(wi.clientId);
+            const clients = wi.clientIds.map(getClient).filter(Boolean);
+            const primaryClient = clients[0];
+            const extraClients = clients.length - 1;
             const transferred = wi.originalOwnerId !== wi.ownerId;
             return (
               <tr
@@ -114,7 +136,28 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
                 onClick={() => ui.openWorkItem(wi.id)}
                 className="cursor-pointer align-middle transition [&>td]:whitespace-nowrap [&>td]:bg-white/70 hover:[&>td]:bg-brand-50/60"
               >
-                <td className="rounded-l-xl px-3 py-2.5 text-xs">
+                <td
+                  className="rounded-l-xl px-2 py-2.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    checked={wi.status === 'Completed'}
+                    onChange={(e) => toggleComplete(wi, e.target.checked)}
+                    className="h-4 w-4 cursor-pointer accent-emerald-500"
+                    title={
+                      wi.status === 'Completed'
+                        ? 'Reopen'
+                        : 'Mark as complete'
+                    }
+                    aria-label={
+                      wi.status === 'Completed'
+                        ? 'Reopen work item'
+                        : 'Mark work item as complete'
+                    }
+                  />
+                </td>
+                <td className="px-3 py-2.5 text-xs">
                   <div className="flex items-center gap-2">
                     <p className="text-xs font-bold text-ink-800">{wi.title}</p>
                     {wi.hasPendingTransfer && (
@@ -146,9 +189,17 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
                     )}
                   </div>
                 </td>
-                <td className="px-2 py-2.5">
+                <td
+                  className="px-2 py-2.5"
+                  title={clients.map((c) => c?.name).join(', ')}
+                >
                   <span className="text-xs font-semibold text-ink-600">
-                    {client?.name ?? 'Unknown'}
+                    {primaryClient?.name ?? 'Unknown'}
+                    {extraClients > 0 && (
+                      <span className="ml-1 text-[10px] font-bold text-brand-600">
+                        +{extraClients}
+                      </span>
+                    )}
                   </span>
                 </td>
                 <td className="px-2 py-2.5">

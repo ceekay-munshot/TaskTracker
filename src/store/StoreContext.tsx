@@ -111,9 +111,17 @@ function migrateWorkItem(w: WorkItem): WorkItem {
   const live = w.liveOnMunshot ?? stage === 'Live on Munshot';
   const claude = w.claudeWorkStarted ?? stage !== 'Client Meeting';
   const meeting = w.clientMeetingDone ?? stage !== 'Client Meeting';
+  const existingIds = Array.isArray(w.clientIds) ? w.clientIds : [];
+  const clientIds = existingIds.length > 0
+    ? existingIds
+    : w.clientId
+      ? [w.clientId]
+      : [];
   return {
     ...w,
     pocId: w.pocId ?? null,
+    clientIds,
+    clientId: clientIds[0] ?? w.clientId ?? '',
     currentStage: stage,
     clientMeetingDone: meeting,
     claudeWorkStarted: claude,
@@ -189,7 +197,7 @@ function emptyData(): AppData {
 export interface WorkItemInput {
   title: string;
   type: WorkItemType;
-  clientId: string;
+  clientIds: string[];
   pocId: string | null;
   ownerId: string;
   priority: Priority;
@@ -516,6 +524,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const workItem: WorkItem = {
       ...input,
       id,
+      clientId: input.clientIds[0] ?? '',
       currentStage: stage,
       originalOwnerId: input.ownerId,
       previousOwnerIds: [],
@@ -572,6 +581,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ...patch,
           updatedAt: now,
         };
+
+        // Keep clientId (primary) in sync with clientIds[0]
+        if (patch.clientIds) {
+          next.clientId = patch.clientIds[0] ?? '';
+        }
 
         // Keep currentStage in sync with the 3 checkpoint booleans
         const stage: WorkflowStage = next.liveOnMunshot
