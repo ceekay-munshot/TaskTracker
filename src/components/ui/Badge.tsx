@@ -83,6 +83,48 @@ export function Badge({
   );
 }
 
+interface DotBadgeProps {
+  color: ColorName;
+  label: string;
+  className?: string;
+}
+
+export function DotBadge({ color, label, className }: DotBadgeProps) {
+  const s = swatch(color);
+  return (
+    <span
+      title={label}
+      aria-label={label}
+      className={cn('inline-block h-2 w-2 shrink-0 rounded-full', s.dot, className)}
+    />
+  );
+}
+
+interface LetterBadgeProps {
+  color: ColorName;
+  letter: string;
+  label: string;
+  className?: string;
+}
+
+export function LetterBadge({ color, letter, label, className }: LetterBadgeProps) {
+  const s = swatch(color);
+  return (
+    <span
+      title={label}
+      aria-label={label}
+      className={cn(
+        'inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-[5px] text-[10px] font-bold leading-none tabular-nums',
+        s.soft,
+        s.text,
+        className,
+      )}
+    >
+      {letter.toUpperCase()}
+    </span>
+  );
+}
+
 export function StatusBadge({ status }: { status: WorkItemStatus }) {
   return (
     <Badge color={workItemStatusColor(status)} dot>
@@ -92,7 +134,8 @@ export function StatusBadge({ status }: { status: WorkItemStatus }) {
 }
 
 export function PriorityBadge({ priority }: { priority: Priority }) {
-  return <Badge color={priorityColor(priority)}>{priority}</Badge>;
+  const letter = priority === 'Critical' ? 'C' : priority[0]; // C / H / M / L
+  return <LetterBadge color={priorityColor(priority)} letter={letter} label={priority} />;
 }
 
 export function ProjectHealthBadge({
@@ -140,11 +183,7 @@ export function TransferStatusBadge({ status }: { status: TransferStatus }) {
 }
 
 export function TypeBadge({ type }: { type: WorkItemType }) {
-  return (
-    <Badge color={workItemTypeColor(type)} soft>
-      {type}
-    </Badge>
-  );
+  return <LetterBadge color={workItemTypeColor(type)} letter={type[0]} label={type} />;
 }
 
 export function TaskStatusBadge({ status }: { status: TaskStatus }) {
@@ -200,11 +239,7 @@ export function ClientFeedbackBadge({
 }
 
 export function ClientStatusBadge({ status }: { status: ClientStatus }) {
-  return (
-    <Badge color={clientStatusColor(status)} dot>
-      {status}
-    </Badge>
-  );
+  return <DotBadge color={clientStatusColor(status)} label={status} />;
 }
 
 export function MemberStatusBadge({ status }: { status: MemberStatus }) {

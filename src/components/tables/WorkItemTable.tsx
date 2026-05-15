@@ -114,9 +114,9 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
                 onClick={() => ui.openWorkItem(wi.id)}
                 className="cursor-pointer align-middle transition [&>td]:whitespace-nowrap [&>td]:bg-white/70 hover:[&>td]:bg-brand-50/60"
               >
-                <td className="rounded-l-xl px-3 py-2.5">
+                <td className="rounded-l-xl px-3 py-2.5 text-xs">
                   <div className="flex items-center gap-2">
-                    <p className="font-bold text-ink-800">{wi.title}</p>
+                    <p className="text-xs font-bold text-ink-800">{wi.title}</p>
                     {wi.hasPendingTransfer && (
                       <Badge color="amber" size="xs" soft>
                         <ArrowLeftRight className="h-3 w-3" /> Pending
