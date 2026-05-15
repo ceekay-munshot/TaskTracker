@@ -58,8 +58,8 @@ export function ClientCard({ client }: { client: Client }) {
       <div className="flex items-start gap-3">
         <Avatar name={client.name} src={client.logoUrl} size="lg" ring />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="truncate font-display text-base font-extrabold text-ink-800">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <p className="font-display text-sm font-extrabold leading-tight text-ink-800">
               {client.name}
             </p>
             <ClientStatusBadge status={client.status} />
