@@ -97,7 +97,7 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
       title: '',
       type: 'Dashboard',
       clientIds: defaultClient ? [defaultClient.id] : [],
-      pocId: defaultClient?.pocs[0]?.id ?? null,
+      pocIds: defaultClient?.pocs[0] ? [defaultClient.pocs[0].id] : [],
       ownerId: '',
       priority: 'Medium',
       clientMeetingDone: false,
@@ -123,7 +123,7 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
               title: editing.title,
               type: editing.type,
               clientIds: editing.clientIds,
-              pocId: editing.pocId,
+              pocIds: editing.pocIds,
               ownerId: editing.ownerId,
               priority: editing.priority,
               clientMeetingDone: editing.clientMeetingDone,
@@ -151,11 +151,8 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
   const selectedClients = data.clients.filter((c) =>
     draft.clientIds.includes(c.id),
   );
-  const clientPocOptions = selectedClients.flatMap((c) =>
-    c.pocs.map((p) => ({
-      value: p.id,
-      label: `${p.name}${p.role ? ` · ${p.role}` : ''} · ${c.name}`,
-    })),
+  const availablePocs = selectedClients.flatMap((c) =>
+    c.pocs.map((p) => ({ poc: p, client: c })),
   );
 
   const toggleClient = (id: string) => {
@@ -166,13 +163,22 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
       const allowedPocIds = data.clients
         .filter((c) => next.includes(c.id))
         .flatMap((c) => c.pocs.map((p) => p.id));
-      const keepPoc = d.pocId && allowedPocIds.includes(d.pocId);
+      const keptPocIds = d.pocIds.filter((p) => allowedPocIds.includes(p));
       return {
         ...d,
         clientIds: next,
-        pocId: keepPoc ? d.pocId : (allowedPocIds[0] ?? null),
+        pocIds: keptPocIds,
       };
     });
+  };
+
+  const togglePoc = (id: string) => {
+    setDraft((d) => ({
+      ...d,
+      pocIds: d.pocIds.includes(id)
+        ? d.pocIds.filter((p) => p !== id)
+        : [...d.pocIds, id],
+    }));
   };
 
   const submit = () => {
@@ -279,23 +285,49 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
               </div>
             </Field>
             <Field
-              label="Client POC"
+              label="Client POCs"
               hint={
-                clientPocOptions.length === 0
+                availablePocs.length === 0
                   ? 'No POCs on file for the selected client(s)'
-                  : 'Pick the contact for this work'
+                  : 'Tap each contact you need to report this work to'
               }
+              className="sm:col-span-2"
             >
-              <Select
-                value={draft.pocId ?? ''}
-                onChange={(v) => set({ pocId: v || null })}
-                options={clientPocOptions}
-                placeholder={
-                  clientPocOptions.length === 0
-                    ? 'No POCs available'
-                    : '— No specific POC —'
-                }
-              />
+              <div className="flex flex-wrap gap-1.5 rounded-xl border border-ink-200 bg-white p-2">
+                {availablePocs.length === 0 ? (
+                  <span className="text-xs text-ink-400">
+                    Pick a client first
+                  </span>
+                ) : (
+                  availablePocs.map(({ poc, client }) => {
+                    const on = draft.pocIds.includes(poc.id);
+                    return (
+                      <button
+                        key={poc.id}
+                        type="button"
+                        onClick={() => togglePoc(poc.id)}
+                        title={`${client.name}${poc.role ? ` — ${poc.role}` : ''}`}
+                        className={cn(
+                          'rounded-full px-2.5 py-1 text-xs font-semibold transition',
+                          on
+                            ? 'bg-brand-500 text-white shadow-sm'
+                            : 'bg-ink-100 text-ink-600 hover:bg-ink-200',
+                        )}
+                      >
+                        {poc.name}
+                        <span
+                          className={cn(
+                            'ml-1 text-[10px] font-medium',
+                            on ? 'text-white/80' : 'text-ink-400',
+                          )}
+                        >
+                          · {client.name}
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
             </Field>
             <Field
               label="Owner"
