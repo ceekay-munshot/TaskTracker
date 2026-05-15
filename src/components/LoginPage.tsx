@@ -11,6 +11,7 @@ const ROLE_ORDER: Record<TeamRole, number> = {
   Founder: 0,
   'Team Lead - Intern': 1,
   'Equity Research Intern': 2,
+  'Tech Team': 3,
 };
 
 function Brand() {
