@@ -20,6 +20,7 @@ import {
   toOptions,
 } from '@/components/ui/Field';
 import { todayISO } from '@/utils/dates';
+import { cn } from '@/utils/cn';
 
 interface Props {
   open: boolean;
@@ -95,7 +96,7 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
     return {
       title: '',
       type: 'Dashboard',
-      clientId: defaultClient?.id ?? '',
+      clientIds: defaultClient ? [defaultClient.id] : [],
       pocId: defaultClient?.pocs[0]?.id ?? null,
       ownerId: '',
       priority: 'Medium',
@@ -121,7 +122,7 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
           ? {
               title: editing.title,
               type: editing.type,
-              clientId: editing.clientId,
+              clientIds: editing.clientIds,
               pocId: editing.pocId,
               ownerId: editing.ownerId,
               priority: editing.priority,
@@ -147,17 +148,37 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
   const set = (patch: Partial<WorkItemInput>) =>
     setDraft((d) => ({ ...d, ...patch }));
 
-  const selectedClient = data.clients.find((c) => c.id === draft.clientId);
-  const clientPocOptions =
-    selectedClient?.pocs.map((p) => ({
+  const selectedClients = data.clients.filter((c) =>
+    draft.clientIds.includes(c.id),
+  );
+  const clientPocOptions = selectedClients.flatMap((c) =>
+    c.pocs.map((p) => ({
       value: p.id,
-      label: p.role ? `${p.name} · ${p.role}` : p.name,
-    })) ?? [];
+      label: `${p.name}${p.role ? ` · ${p.role}` : ''} · ${c.name}`,
+    })),
+  );
+
+  const toggleClient = (id: string) => {
+    setDraft((d) => {
+      const next = d.clientIds.includes(id)
+        ? d.clientIds.filter((c) => c !== id)
+        : [...d.clientIds, id];
+      const allowedPocIds = data.clients
+        .filter((c) => next.includes(c.id))
+        .flatMap((c) => c.pocs.map((p) => p.id));
+      const keepPoc = d.pocId && allowedPocIds.includes(d.pocId);
+      return {
+        ...d,
+        clientIds: next,
+        pocId: keepPoc ? d.pocId : (allowedPocIds[0] ?? null),
+      };
+    });
+  };
 
   const submit = () => {
     const errs: Record<string, string> = {};
     if (!draft.title.trim()) errs.title = 'Title is required';
-    if (!draft.clientId) errs.clientId = 'A client is required';
+    if (draft.clientIds.length === 0) errs.clientIds = 'Pick at least one client';
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
@@ -218,30 +239,51 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
                 options={toOptions(PRIORITIES)}
               />
             </Field>
-            <Field label="Client" required error={errors.clientId}>
-              <Select
-                value={draft.clientId}
-                onChange={(v) => {
-                  const nextClient = data.clients.find((c) => c.id === v);
-                  set({
-                    clientId: v,
-                    pocId: nextClient?.pocs[0]?.id ?? null,
-                  });
-                }}
-                options={data.clients.map((c) => ({
-                  value: c.id,
-                  label: c.name,
-                }))}
-                placeholder="Select client"
-                invalid={!!errors.clientId}
-              />
+            <Field
+              label="Clients"
+              required
+              error={errors.clientIds}
+              hint="Tap each client this work is for — appears on every client's tab"
+              className="sm:col-span-2"
+            >
+              <div
+                className={cn(
+                  'flex flex-wrap gap-1.5 rounded-xl border p-2',
+                  errors.clientIds
+                    ? 'border-rose-400 bg-rose-50/40'
+                    : 'border-ink-200 bg-white',
+                )}
+              >
+                {data.clients.length === 0 ? (
+                  <span className="text-xs text-ink-400">No clients yet</span>
+                ) : (
+                  data.clients.map((c) => {
+                    const on = draft.clientIds.includes(c.id);
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => toggleClient(c.id)}
+                        className={cn(
+                          'rounded-full px-2.5 py-1 text-xs font-semibold transition',
+                          on
+                            ? 'bg-brand-500 text-white shadow-sm'
+                            : 'bg-ink-100 text-ink-600 hover:bg-ink-200',
+                        )}
+                      >
+                        {c.name}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
             </Field>
             <Field
               label="Client POC"
               hint={
                 clientPocOptions.length === 0
-                  ? 'No POCs on file for this client'
-                  : 'Pick the contact for this dashboard'
+                  ? 'No POCs on file for the selected client(s)'
+                  : 'Pick the contact for this work'
               }
             >
               <Select

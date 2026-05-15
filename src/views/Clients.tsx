@@ -51,7 +51,7 @@ export function Clients() {
       }
     >();
     data.clients.forEach((c) => {
-      const work = data.workItems.filter((w) => w.clientId === c.id);
+      const work = data.workItems.filter((w) => w.clientIds.includes(c.id));
       map.set(c.id, {
         activeWork: work.filter((w) => w.status !== 'Completed').length,
         feedbackPending: data.feedback.filter(

@@ -917,6 +917,7 @@ function buildWorkItem(spec: WiSpec): WorkItem {
     title: spec.title,
     type: spec.type,
     clientId: spec.clientId,
+    clientIds: [spec.clientId],
     pocId: defaultPocId,
     ownerId: spec.ownerId,
     originalOwnerId: spec.originalOwnerId,

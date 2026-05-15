@@ -27,7 +27,7 @@ export function ClientCard({ client }: { client: Client }) {
   const toast = useToast();
   const navigate = useNavigate();
 
-  const work = data.workItems.filter((w) => w.clientId === client.id);
+  const work = data.workItems.filter((w) => w.clientIds.includes(client.id));
   const totalWork = work.length;
   const activeWork = work.filter((w) => w.status !== 'Completed').length;
   const completedWork = work.filter((w) => w.status === 'Completed').length;
@@ -108,7 +108,7 @@ export function ClientCard({ client }: { client: Client }) {
             {
               label: 'Add dashboard / agent',
               icon: Briefcase,
-              onClick: () => ui.addWorkItem({ clientId: client.id }),
+              onClick: () => ui.addWorkItem({ clientIds: [client.id] }),
             },
             {
               label: 'Delete client',

@@ -106,7 +106,9 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
         <tbody>
           {items.map((wi) => {
             const owner = getMember(wi.ownerId);
-            const client = getClient(wi.clientId);
+            const clients = wi.clientIds.map(getClient).filter(Boolean);
+            const primaryClient = clients[0];
+            const extraClients = clients.length - 1;
             const transferred = wi.originalOwnerId !== wi.ownerId;
             return (
               <tr
@@ -146,9 +148,17 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
                     )}
                   </div>
                 </td>
-                <td className="px-2 py-2.5">
+                <td
+                  className="px-2 py-2.5"
+                  title={clients.map((c) => c?.name).join(', ')}
+                >
                   <span className="text-xs font-semibold text-ink-600">
-                    {client?.name ?? 'Unknown'}
+                    {primaryClient?.name ?? 'Unknown'}
+                    {extraClients > 0 && (
+                      <span className="ml-1 text-[10px] font-bold text-brand-600">
+                        +{extraClients}
+                      </span>
+                    )}
                   </span>
                 </td>
                 <td className="px-2 py-2.5">

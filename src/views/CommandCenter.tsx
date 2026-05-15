@@ -92,7 +92,7 @@ export function CommandCenter() {
         .map((c) => ({
           label: c.name.split(' ')[0],
           active: data.workItems.filter(
-            (w) => w.clientId === c.id && w.status !== 'Completed',
+            (w) => w.clientIds.includes(c.id) && w.status !== 'Completed',
           ).length,
         }))
         .filter((d) => d.active > 0),

@@ -85,7 +85,7 @@ export function ClientMeetingRecordingModal({
 
   // filter linked work items to the chosen client (if any) for relevance
   const workItemOptions = data.workItems
-    .filter((w) => !draft.clientId || w.clientId === draft.clientId)
+    .filter((w) => !draft.clientId || w.clientIds.includes(draft.clientId))
     .map((w) => ({ value: w.id, label: w.title }));
 
   return (
