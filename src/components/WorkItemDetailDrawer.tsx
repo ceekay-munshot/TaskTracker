@@ -199,29 +199,40 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
               </div>
             )}
             {(() => {
-              const poc = allClients
-                .flatMap((c) => c.pocs)
-                .find((p) => p.id === wi.pocId);
-              if (!poc) return null;
+              const pocs = allClients
+                .flatMap((c) => c.pocs.map((p) => ({ poc: p, client: c })))
+                .filter(({ poc }) => wi.pocIds.includes(poc.id));
+              if (pocs.length === 0) return null;
               return (
                 <div>
-                  <p className="label-text">Client POC</p>
-                  <div>
-                    <p className="text-sm font-bold text-ink-800">
-                      {poc.name}
-                      {poc.role && (
-                        <span className="ml-1 text-xs font-medium text-ink-400">
-                          · {poc.role}
-                        </span>
-                      )}
-                    </p>
-                    {(poc.email || poc.phone) && (
-                      <p className="text-[11px] text-ink-400">
-                        {poc.email}
-                        {poc.email && poc.phone ? ' · ' : ''}
-                        {poc.phone}
-                      </p>
-                    )}
+                  <p className="label-text">
+                    Client POC{pocs.length > 1 ? 's' : ''}
+                  </p>
+                  <div className="space-y-1.5">
+                    {pocs.map(({ poc, client }) => (
+                      <div key={poc.id}>
+                        <p className="text-sm font-bold text-ink-800">
+                          {poc.name}
+                          {poc.role && (
+                            <span className="ml-1 text-xs font-medium text-ink-400">
+                              · {poc.role}
+                            </span>
+                          )}
+                          {allClients.length > 1 && (
+                            <span className="ml-1 text-xs font-medium text-ink-400">
+                              · {client.name}
+                            </span>
+                          )}
+                        </p>
+                        {(poc.email || poc.phone) && (
+                          <p className="text-[11px] text-ink-400">
+                            {poc.email}
+                            {poc.email && poc.phone ? ' · ' : ''}
+                            {poc.phone}
+                          </p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               );

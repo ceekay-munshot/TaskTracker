@@ -919,6 +919,7 @@ function buildWorkItem(spec: WiSpec): WorkItem {
     clientId: spec.clientId,
     clientIds: [spec.clientId],
     pocId: defaultPocId,
+    pocIds: defaultPocId ? [defaultPocId] : [],
     ownerId: spec.ownerId,
     originalOwnerId: spec.originalOwnerId,
     previousOwnerIds: spec.previousOwnerIds ?? [],

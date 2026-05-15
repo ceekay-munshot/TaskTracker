@@ -117,9 +117,16 @@ function migrateWorkItem(w: WorkItem): WorkItem {
     : w.clientId
       ? [w.clientId]
       : [];
+  const existingPocIds = Array.isArray(w.pocIds) ? w.pocIds : [];
+  const pocIds = existingPocIds.length > 0
+    ? existingPocIds
+    : w.pocId
+      ? [w.pocId]
+      : [];
   return {
     ...w,
-    pocId: w.pocId ?? null,
+    pocId: pocIds[0] ?? w.pocId ?? null,
+    pocIds,
     clientIds,
     clientId: clientIds[0] ?? w.clientId ?? '',
     currentStage: stage,
@@ -198,7 +205,7 @@ export interface WorkItemInput {
   title: string;
   type: WorkItemType;
   clientIds: string[];
-  pocId: string | null;
+  pocIds: string[];
   ownerId: string;
   priority: Priority;
   clientMeetingDone: boolean;
@@ -525,6 +532,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ...input,
       id,
       clientId: input.clientIds[0] ?? '',
+      pocId: input.pocIds[0] ?? null,
       currentStage: stage,
       originalOwnerId: input.ownerId,
       previousOwnerIds: [],
@@ -585,6 +593,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         // Keep clientId (primary) in sync with clientIds[0]
         if (patch.clientIds) {
           next.clientId = patch.clientIds[0] ?? '';
+        }
+        // Keep pocId (primary) in sync with pocIds[0]
+        if (patch.pocIds) {
+          next.pocId = patch.pocIds[0] ?? null;
         }
 
         // Keep currentStage in sync with the 3 checkpoint booleans
