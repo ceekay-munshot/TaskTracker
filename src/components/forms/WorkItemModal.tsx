@@ -96,10 +96,12 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function emptyDraft(): WorkItemInput {
+    const defaultClient = data.clients[0];
     return {
       title: '',
       type: 'Dashboard',
-      clientId: data.clients[0]?.id ?? '',
+      clientId: defaultClient?.id ?? '',
+      pocId: defaultClient?.pocs[0]?.id ?? null,
       ownerId: '',
       priority: 'Medium',
       currentStage: 'Client Meeting',
@@ -129,6 +131,7 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
               title: editing.title,
               type: editing.type,
               clientId: editing.clientId,
+              pocId: editing.pocId,
               ownerId: editing.ownerId,
               priority: editing.priority,
               currentStage: editing.currentStage,
@@ -156,6 +159,13 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
 
   const set = (patch: Partial<WorkItemInput>) =>
     setDraft((d) => ({ ...d, ...patch }));
+
+  const selectedClient = data.clients.find((c) => c.id === draft.clientId);
+  const clientPocOptions =
+    selectedClient?.pocs.map((p) => ({
+      value: p.id,
+      label: p.role ? `${p.name} · ${p.role}` : p.name,
+    })) ?? [];
 
   const submit = () => {
     const errs: Record<string, string> = {};
@@ -224,13 +234,38 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
             <Field label="Client" required error={errors.clientId}>
               <Select
                 value={draft.clientId}
-                onChange={(v) => set({ clientId: v })}
+                onChange={(v) => {
+                  const nextClient = data.clients.find((c) => c.id === v);
+                  set({
+                    clientId: v,
+                    pocId: nextClient?.pocs[0]?.id ?? null,
+                  });
+                }}
                 options={data.clients.map((c) => ({
                   value: c.id,
                   label: c.name,
                 }))}
                 placeholder="Select client"
                 invalid={!!errors.clientId}
+              />
+            </Field>
+            <Field
+              label="Client POC"
+              hint={
+                clientPocOptions.length === 0
+                  ? 'No POCs on file for this client'
+                  : 'Pick the contact for this dashboard'
+              }
+            >
+              <Select
+                value={draft.pocId ?? ''}
+                onChange={(v) => set({ pocId: v || null })}
+                options={clientPocOptions}
+                placeholder={
+                  clientPocOptions.length === 0
+                    ? 'No POCs available'
+                    : '— No specific POC —'
+                }
               />
             </Field>
             <Field

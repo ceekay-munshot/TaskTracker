@@ -417,29 +417,45 @@ export function ClientDetail() {
                 </span>
               )}
             </div>
-            <div className="mt-1.5 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-ink-500">
-              <span className="inline-flex items-center gap-1.5">
-                <Users className="h-4 w-4 text-ink-300" />
-                <span className="font-semibold text-ink-700">
-                  {client.pointOfContact || 'No contact'}
-                </span>
-              </span>
-              {client.pocEmail && (
-                <a
-                  href={`mailto:${client.pocEmail}`}
-                  className="inline-flex items-center gap-1.5 hover:text-brand-600"
-                >
-                  <Mail className="h-4 w-4 text-ink-300" />
-                  {client.pocEmail}
-                </a>
-              )}
-              {client.pocPhone && (
-                <span className="inline-flex items-center gap-1.5">
-                  <Phone className="h-4 w-4 text-ink-300" />
-                  {client.pocPhone}
-                </span>
-              )}
-            </div>
+            {client.pocs.length > 0 && (
+              <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {client.pocs.map((poc) => (
+                  <div
+                    key={poc.id}
+                    className="rounded-xl border border-ink-100 bg-white/70 p-2.5 text-sm"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Users className="h-4 w-4 text-ink-300" />
+                      <span className="font-semibold text-ink-700">
+                        {poc.name}
+                      </span>
+                    </div>
+                    {poc.role && (
+                      <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-ink-400">
+                        {poc.role}
+                      </p>
+                    )}
+                    <div className="mt-1.5 space-y-0.5 text-xs text-ink-500">
+                      {poc.email && (
+                        <a
+                          href={`mailto:${poc.email}`}
+                          className="inline-flex items-center gap-1.5 hover:text-brand-600"
+                        >
+                          <Mail className="h-3.5 w-3.5 text-ink-300" />
+                          {poc.email}
+                        </a>
+                      )}
+                      {poc.phone && (
+                        <div className="inline-flex items-center gap-1.5">
+                          <Phone className="h-3.5 w-3.5 text-ink-300" />
+                          {poc.phone}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Importance score */}
             <div className="mt-3 flex items-center gap-2.5">
