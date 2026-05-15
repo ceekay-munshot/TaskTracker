@@ -6,6 +6,9 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Shrink the whole UI proportionally — every rem-based Tailwind size
+       (text-xs, text-sm, gap, padding) scales with this. */
+    font-size: 14px;
   }
 
   body {
