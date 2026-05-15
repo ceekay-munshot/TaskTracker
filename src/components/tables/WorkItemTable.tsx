@@ -16,8 +16,6 @@ import { useToast } from '@/components/ui/Toast';
 import {
   Badge,
   PriorityBadge,
-  ProjectHealthBadge,
-  ReadinessBadge,
   StatusBadge,
   TypeBadge,
   WorkflowStageBadge,
@@ -59,7 +57,7 @@ function DueCell({ workItem }: { workItem: WorkItem }) {
 }
 
 export function WorkItemTable({ items }: { items: WorkItem[] }) {
-  const { derived, getMember, getClient, deleteWorkItem } = useStore();
+  const { getMember, getClient, deleteWorkItem } = useStore();
   const ui = useUI();
   const confirm = useConfirm();
   const toast = useToast();
@@ -99,8 +97,6 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
             <th className="px-2 pb-1">Owner</th>
             <th className="px-2 pb-1">Stage</th>
             <th className="px-2 pb-1">Status</th>
-            <th className="px-2 pb-1">Health</th>
-            <th className="px-2 pb-1">Readiness</th>
             <th className="px-2 pb-1">Progress</th>
             <th className="px-2 pb-1">Due</th>
             <th className="px-2 pb-1" />
@@ -110,8 +106,6 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
           {items.map((wi) => {
             const owner = getMember(wi.ownerId);
             const client = getClient(wi.clientId);
-            const health = derived.healthByItem.get(wi.id);
-            const readiness = derived.readinessByItem.get(wi.id);
             const transferred = wi.originalOwnerId !== wi.ownerId;
             return (
               <tr
@@ -180,17 +174,6 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
                 </td>
                 <td className="px-2 py-2.5">
                   <StatusBadge status={wi.status} />
-                </td>
-                <td className="px-2 py-2.5">
-                  {health && <ProjectHealthBadge health={health} />}
-                </td>
-                <td className="px-2 py-2.5">
-                  {readiness && (
-                    <ReadinessBadge
-                      badge={readiness.badge}
-                      percent={readiness.percent}
-                    />
-                  )}
                 </td>
                 <td className="w-28 px-2 py-2.5">
                   <ProgressBar

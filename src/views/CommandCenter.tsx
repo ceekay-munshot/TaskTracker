@@ -25,11 +25,7 @@ import { MetricCard } from '@/components/ui/MetricCard';
 import { Panel, SectionHeading } from '@/components/ui/Panel';
 import { ExportButtons } from '@/components/ui/ExportButtons';
 import { Avatar } from '@/components/ui/Avatar';
-import {
-  ProjectHealthBadge,
-  TransferStatusBadge,
-  TypeBadge,
-} from '@/components/ui/Badge';
+import { TransferStatusBadge, TypeBadge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BarChartView, BarList } from '@/components/charts/Charts';
 import { WorkloadHeatmap } from '@/components/WorkloadHeatmap';
@@ -461,28 +457,24 @@ export function CommandCenter() {
 
         <Panel title="Recently updated work" icon={Activity} iconColor="indigo">
           <ul className="space-y-2">
-            {recentlyUpdated.map((w) => {
-              const health = derived.healthByItem.get(w.id);
-              return (
-                <li key={w.id}>
-                  <button
-                    type="button"
-                    onClick={() => ui.openWorkItem(w.id)}
-                    className="flex w-full items-center gap-2 rounded-xl bg-white/70 p-2.5 text-left hover:bg-brand-50"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-ink-800">
-                        {w.title}
-                      </p>
-                      <p className="text-[11px] text-ink-400">
-                        Updated {formatDate(w.updatedAt)}
-                      </p>
-                    </div>
-                    {health && <ProjectHealthBadge health={health} />}
-                  </button>
-                </li>
-              );
-            })}
+            {recentlyUpdated.map((w) => (
+              <li key={w.id}>
+                <button
+                  type="button"
+                  onClick={() => ui.openWorkItem(w.id)}
+                  className="flex w-full items-center gap-2 rounded-xl bg-white/70 p-2.5 text-left hover:bg-brand-50"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-ink-800">
+                      {w.title}
+                    </p>
+                    <p className="text-[11px] text-ink-400">
+                      Updated {formatDate(w.updatedAt)}
+                    </p>
+                  </div>
+                </button>
+              </li>
+            ))}
           </ul>
         </Panel>
       </div>
