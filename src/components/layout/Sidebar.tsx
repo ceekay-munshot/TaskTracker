@@ -1,13 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  Database,
-  LineChart,
-  LogOut,
-  RotateCcw,
-  Trash2,
-  X,
-} from 'lucide-react';
+import { LineChart, LogOut, Trash2, X } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { NAV_ITEMS } from '@/config/navigation';
 import { useStore } from '@/store/StoreContext';
@@ -22,33 +15,10 @@ interface SidebarProps {
 }
 
 export function Sidebar({ open, onClose }: SidebarProps) {
-  const { resetMockData, clearAllData, data } = useStore();
+  const { clearAllData } = useStore();
   const { currentUser, logout } = useAuth();
   const confirm = useConfirm();
   const toast = useToast();
-
-  const totalRecords =
-    data.teamMembers.length +
-    data.clients.length +
-    data.workItems.length +
-    data.tasks.length +
-    data.recordings.length +
-    data.transfers.length;
-
-  const handleReset = async () => {
-    const ok = await confirm({
-      title: 'Reset to mock data?',
-      description:
-        'This replaces all current data with the original Munshot demo dataset. Any edits you have made will be lost.',
-      confirmLabel: 'Reset data',
-      tone: 'danger',
-    });
-    if (ok) {
-      resetMockData();
-      toast.success('Mock data restored', 'The demo dataset has been reloaded.');
-      onClose();
-    }
-  };
 
   const handleClear = async () => {
     const ok = await confirm({
@@ -184,28 +154,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
         {/* Data controls */}
         <div className="border-t border-ink-200/70 p-3">
-          <div className="mb-2 flex items-center gap-1.5 px-2 text-[11px] font-bold uppercase tracking-wide text-ink-400">
-            <Database className="h-3.5 w-3.5" />
-            Data · {totalRecords} records
-          </div>
-          <div className="space-y-1">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold text-ink-500 transition hover:bg-brand-50 hover:text-brand-700"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              Reset Mock Data
-            </button>
-            <button
-              type="button"
-              onClick={handleClear}
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold text-ink-500 transition hover:bg-rose-50 hover:text-rose-600"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Clear All Data
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleClear}
+            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold text-ink-500 transition hover:bg-rose-50 hover:text-rose-600"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Clear All Data
+          </button>
         </div>
       </aside>
     </>
