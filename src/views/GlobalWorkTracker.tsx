@@ -34,7 +34,7 @@ import { SegmentedControl } from '@/components/ui/Field';
 import { Avatar } from '@/components/ui/Avatar';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { ProjectHealthBadge, TypeBadge } from '@/components/ui/Badge';
+import { TypeBadge } from '@/components/ui/Badge';
 import { WorkItemTable } from '@/components/tables/WorkItemTable';
 import { BarChartView } from '@/components/charts/Charts';
 import { isOverdue } from '@/utils/dates';
@@ -438,7 +438,6 @@ export function GlobalWorkTracker() {
                       ) : (
                         items.map((w) => {
                           const wOwner = getMember(w.ownerId);
-                          const wHealth = derived.healthByItem.get(w.id);
                           return (
                             <button
                               key={w.id}
@@ -451,12 +450,6 @@ export function GlobalWorkTracker() {
                               </p>
                               <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                                 <TypeBadge type={w.type} />
-                                {wHealth && (
-                                  <ProjectHealthBadge
-                                    health={wHealth}
-                                    size="xs"
-                                  />
-                                )}
                               </div>
                               <div className="mt-2 flex items-center gap-1.5">
                                 <Avatar
