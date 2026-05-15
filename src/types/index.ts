@@ -218,14 +218,20 @@ export interface TeamMember {
   bio: string;
 }
 
+export interface ClientPOC {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+}
+
 export interface Client {
   id: string;
   name: string;
   address: string;
   city: string;
-  pointOfContact: string;
-  pocEmail: string;
-  pocPhone: string;
+  pocs: ClientPOC[];
   logoUrl: string;
   status: ClientStatus;
   notes: string;
@@ -243,6 +249,7 @@ export interface WorkItem {
   title: string;
   type: WorkItemType;
   clientId: string;
+  pocId: string | null;
   ownerId: string;
   originalOwnerId: string;
   previousOwnerIds: string[];

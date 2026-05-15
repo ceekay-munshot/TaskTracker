@@ -199,6 +199,32 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
                 </div>
               </div>
             )}
+            {(() => {
+              const poc = client?.pocs.find((p) => p.id === wi.pocId);
+              if (!poc) return null;
+              return (
+                <div>
+                  <p className="label-text">Client POC</p>
+                  <div>
+                    <p className="text-sm font-bold text-ink-800">
+                      {poc.name}
+                      {poc.role && (
+                        <span className="ml-1 text-xs font-medium text-ink-400">
+                          · {poc.role}
+                        </span>
+                      )}
+                    </p>
+                    {(poc.email || poc.phone) && (
+                      <p className="text-[11px] text-ink-400">
+                        {poc.email}
+                        {poc.email && poc.phone ? ' · ' : ''}
+                        {poc.phone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* KPI strip */}

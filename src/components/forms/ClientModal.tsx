@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Building2 } from 'lucide-react';
-import { CLIENT_STATUSES, type Client } from '@/types';
+import { Building2, Plus, Trash2 } from 'lucide-react';
+import { CLIENT_STATUSES, type Client, type ClientPOC } from '@/types';
 import { useStore } from '@/store/StoreContext';
 import { useToast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
 import { Field, Select, TextArea, TextInput, toOptions } from '@/components/ui/Field';
 import { Avatar } from '@/components/ui/Avatar';
+import { uid } from '@/utils/ids';
 
 type Draft = Omit<Client, 'id'>;
 
@@ -16,13 +17,19 @@ interface Props {
   prefill?: Partial<Draft>;
 }
 
+const newPoc = (): ClientPOC => ({
+  id: uid('poc'),
+  name: '',
+  email: '',
+  phone: '',
+  role: '',
+});
+
 const emptyDraft = (prefill?: Partial<Draft>): Draft => ({
   name: '',
   address: '',
   city: '',
-  pointOfContact: '',
-  pocEmail: '',
-  pocPhone: '',
+  pocs: [newPoc()],
   logoUrl: '',
   status: 'Active',
   notes: '',
@@ -38,7 +45,14 @@ export function ClientModal({ open, onClose, editing, prefill }: Props) {
 
   useEffect(() => {
     if (open) {
-      setDraft(editing ? { ...editing } : emptyDraft(prefill));
+      setDraft(
+        editing
+          ? {
+              ...editing,
+              pocs: editing.pocs.length > 0 ? editing.pocs : [newPoc()],
+            }
+          : emptyDraft(prefill),
+      );
       setErrors({});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -47,22 +61,51 @@ export function ClientModal({ open, onClose, editing, prefill }: Props) {
   const set = (patch: Partial<Draft>) =>
     setDraft((d) => ({ ...d, ...patch }));
 
+  const updatePoc = (id: string, patch: Partial<ClientPOC>) =>
+    setDraft((d) => ({
+      ...d,
+      pocs: d.pocs.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+    }));
+
+  const addPoc = () =>
+    setDraft((d) => ({ ...d, pocs: [...d.pocs, newPoc()] }));
+
+  const removePoc = (id: string) =>
+    setDraft((d) => ({
+      ...d,
+      pocs: d.pocs.length <= 1 ? d.pocs : d.pocs.filter((p) => p.id !== id),
+    }));
+
   const submit = () => {
     const errs: Record<string, string> = {};
     if (!draft.name.trim()) errs.name = 'Client name is required';
-    if (!draft.pointOfContact.trim())
-      errs.pointOfContact = 'Point of contact is required';
-    if (draft.pocEmail && !/^\S+@\S+\.\S+$/.test(draft.pocEmail))
-      errs.pocEmail = 'Enter a valid email';
+    const cleanedPocs = draft.pocs
+      .map((p) => ({
+        ...p,
+        name: p.name.trim(),
+        email: p.email.trim(),
+        phone: p.phone.trim(),
+        role: p.role.trim(),
+      }))
+      .filter((p) => p.name);
+    if (cleanedPocs.length === 0) {
+      errs.pocs = 'At least one point of contact is required';
+    }
+    cleanedPocs.forEach((p) => {
+      if (p.email && !/^\S+@\S+\.\S+$/.test(p.email)) {
+        errs[`poc-email-${p.id}`] = 'Enter a valid email';
+      }
+    });
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
     }
+    const payload: Draft = { ...draft, pocs: cleanedPocs };
     if (editing) {
-      updateClient(editing.id, draft);
+      updateClient(editing.id, payload);
       toast.success('Client updated', draft.name);
     } else {
-      addClient(draft);
+      addClient(payload);
       toast.success('Client added', draft.name);
     }
     onClose();
@@ -131,35 +174,89 @@ export function ClientModal({ open, onClose, editing, prefill }: Props) {
               placeholder="Office address"
             />
           </Field>
-          <Field label="Point of contact" required error={errors.pointOfContact}>
-            <TextInput
-              value={draft.pointOfContact}
-              invalid={!!errors.pointOfContact}
-              onChange={(e) => set({ pointOfContact: e.target.value })}
-              placeholder="e.g. Daniel Koh"
-            />
-          </Field>
-          <Field label="POC phone">
-            <TextInput
-              value={draft.pocPhone}
-              onChange={(e) => set({ pocPhone: e.target.value })}
-              placeholder="+…"
-            />
-          </Field>
-          <Field
-            label="POC email"
-            error={errors.pocEmail}
-            className="sm:col-span-2"
-          >
-            <TextInput
-              type="email"
-              value={draft.pocEmail}
-              invalid={!!errors.pocEmail}
-              onChange={(e) => set({ pocEmail: e.target.value })}
-              placeholder="contact@client.com"
-            />
-          </Field>
         </div>
+
+        <section className="space-y-3 rounded-xl border border-ink-100 bg-ink-50/50 p-3.5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="section-title">Points of contact</p>
+              <p className="text-[11px] text-ink-400">
+                Add one row per stakeholder; dashboards can pin a specific POC
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={addPoc}
+              className="btn-soft text-xs"
+              title="Add another point of contact"
+            >
+              <Plus className="h-4 w-4" />
+              Add POC
+            </button>
+          </div>
+          {errors.pocs && (
+            <p className="text-xs font-medium text-rose-500">{errors.pocs}</p>
+          )}
+          <div className="space-y-3">
+            {draft.pocs.map((p, idx) => (
+              <div
+                key={p.id}
+                className="rounded-xl border border-ink-200 bg-white p-3"
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-ink-500">
+                    POC #{idx + 1}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => removePoc(p.id)}
+                    disabled={draft.pocs.length <= 1}
+                    className="icon-btn text-rose-500 disabled:opacity-30"
+                    title="Remove this POC"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="Name">
+                    <TextInput
+                      value={p.name}
+                      onChange={(e) => updatePoc(p.id, { name: e.target.value })}
+                      placeholder="e.g. Daniel Koh"
+                    />
+                  </Field>
+                  <Field label="Role">
+                    <TextInput
+                      value={p.role}
+                      onChange={(e) => updatePoc(p.id, { role: e.target.value })}
+                      placeholder="e.g. Head of Research"
+                    />
+                  </Field>
+                  <Field label="Email" error={errors[`poc-email-${p.id}`]}>
+                    <TextInput
+                      type="email"
+                      value={p.email}
+                      invalid={!!errors[`poc-email-${p.id}`]}
+                      onChange={(e) =>
+                        updatePoc(p.id, { email: e.target.value })
+                      }
+                      placeholder="contact@client.com"
+                    />
+                  </Field>
+                  <Field label="Phone">
+                    <TextInput
+                      value={p.phone}
+                      onChange={(e) =>
+                        updatePoc(p.id, { phone: e.target.value })
+                      }
+                      placeholder="+…"
+                    />
+                  </Field>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <Field
           label={`Importance score — ${draft.importanceScore} / 10`}

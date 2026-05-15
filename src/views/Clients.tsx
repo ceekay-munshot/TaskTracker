@@ -112,8 +112,15 @@ export function Clients() {
         { header: 'Name', value: (c) => c.name },
         { header: 'City', value: (c) => c.city },
         { header: 'Status', value: (c) => c.status },
-        { header: 'Point of Contact', value: (c) => c.pointOfContact },
-        { header: 'POC Email', value: (c) => c.pocEmail },
+        {
+          header: 'Points of Contact',
+          value: (c) =>
+            c.pocs.map((p) => (p.role ? `${p.name} (${p.role})` : p.name)).join('; '),
+        },
+        {
+          header: 'POC Emails',
+          value: (c) => c.pocs.map((p) => p.email).filter(Boolean).join('; '),
+        },
         { header: 'Importance Score', value: (c) => c.importanceScore },
         {
           header: 'Active Work',

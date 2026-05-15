@@ -59,12 +59,44 @@ const STORAGE_KEY = 'munshot-os-data-v1';
 /* Persistence                                                        */
 /* ------------------------------------------------------------------ */
 
+interface LegacyClient extends Omit<Client, 'pocs'> {
+  pocs?: Client['pocs'];
+  pointOfContact?: string;
+  pocEmail?: string;
+  pocPhone?: string;
+}
+
+function migrateClient(raw: LegacyClient): Client {
+  if (Array.isArray(raw.pocs) && raw.pocs.length > 0) {
+    const { pointOfContact: _p, pocEmail: _e, pocPhone: _ph, ...rest } = raw;
+    return rest as Client;
+  }
+  const legacyName = raw.pointOfContact?.trim() ?? '';
+  const pocs = legacyName
+    ? [
+        {
+          id: uid('poc'),
+          name: legacyName,
+          email: raw.pocEmail ?? '',
+          phone: raw.pocPhone ?? '',
+          role: 'Primary',
+        },
+      ]
+    : [];
+  const { pointOfContact: _p, pocEmail: _e, pocPhone: _ph, ...rest } = raw;
+  return { ...(rest as Omit<Client, 'pocs'>), pocs };
+}
+
 function ensureShape(raw: Partial<AppData>): AppData {
   const fallbackStages = cloneSeedData().workflowStages;
+  const clients = (raw.clients ?? []) as LegacyClient[];
   return {
     teamMembers: raw.teamMembers ?? [],
-    clients: raw.clients ?? [],
-    workItems: raw.workItems ?? [],
+    clients: clients.map(migrateClient),
+    workItems: (raw.workItems ?? []).map((w) => ({
+      ...w,
+      pocId: w.pocId ?? null,
+    })),
     tasks: raw.tasks ?? [],
     meetings: raw.meetings ?? [],
     recordings: raw.recordings ?? [],
@@ -118,6 +150,7 @@ export interface WorkItemInput {
   title: string;
   type: WorkItemType;
   clientId: string;
+  pocId: string | null;
   ownerId: string;
   priority: Priority;
   currentStage: WorkflowStage;

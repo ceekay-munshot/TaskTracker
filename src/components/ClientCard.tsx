@@ -70,7 +70,11 @@ export function ClientCard({ client }: { client: Client }) {
             <ClientStatusBadge status={client.status} />
           </div>
           <p className="truncate text-xs text-ink-400">
-            {client.city || 'No city'} · {client.pointOfContact}
+            {client.city || 'No city'} ·{' '}
+            {client.pocs[0]?.name ?? 'No POC'}
+            {client.pocs.length > 1
+              ? ` · +${client.pocs.length - 1} POC${client.pocs.length > 2 ? 's' : ''}`
+              : ''}
           </p>
           <div className="mt-1 flex items-center gap-1.5">
             <span className="text-[10px] font-bold uppercase tracking-wide text-ink-400">

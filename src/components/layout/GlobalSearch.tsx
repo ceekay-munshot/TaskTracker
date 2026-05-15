@@ -78,17 +78,21 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
     });
 
     data.clients.forEach((c) => {
+      const pocText = c.pocs
+        .map((p) => `${p.name} ${p.email}`)
+        .join(' ')
+        .toLowerCase();
       if (
         c.name.toLowerCase().includes(q) ||
         c.city.toLowerCase().includes(q) ||
-        c.pointOfContact.toLowerCase().includes(q)
+        pocText.includes(q)
       ) {
         out.push({
           id: c.id,
           group: 'Clients',
           icon: Building2,
           primary: c.name,
-          secondary: `${c.city} · ${c.pointOfContact}`,
+          secondary: `${c.city} · ${c.pocs[0]?.name ?? 'No POC'}`,
           run: () => {
             navigate(`/clients/${c.id}`);
             onClose();
