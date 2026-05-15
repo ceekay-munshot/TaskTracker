@@ -875,7 +875,7 @@ export function ClientDetail() {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-bold text-ink-800">
+                          <p className="truncate text-xs font-bold text-ink-800">
                             {w.title}
                           </p>
                           <p className="truncate text-[11px] text-ink-400">
