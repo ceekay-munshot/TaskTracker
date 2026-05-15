@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 import {
   ArrowLeftRight,
   Briefcase,
+  CheckCircle2,
   Eye,
-  MessageSquare,
+  LayoutList,
   Pencil,
-  Rocket,
   Trash2,
   Video,
 } from 'lucide-react';
@@ -18,27 +18,22 @@ import { useToast } from '@/components/ui/Toast';
 import { Avatar } from '@/components/ui/Avatar';
 import { ClientStatusBadge } from '@/components/ui/Badge';
 import { ActionMenu } from '@/components/ui/ActionMenu';
-import { isBacklogFeedback } from '@/utils/improvements';
 import { cn } from '@/utils/cn';
 
 export function ClientCard({ client }: { client: Client }) {
-  const { data, derived, deleteClient } = useStore();
+  const { data, deleteClient } = useStore();
   const ui = useUI();
   const confirm = useConfirm();
   const toast = useToast();
   const navigate = useNavigate();
 
   const work = data.workItems.filter((w) => w.clientId === client.id);
+  const totalWork = work.length;
   const activeWork = work.filter((w) => w.status !== 'Completed').length;
-  const feedbackPending = data.feedback.filter(
-    (f) => f.clientId === client.id && isBacklogFeedback(f),
-  ).length;
+  const completedWork = work.filter((w) => w.status === 'Completed').length;
   const pendingTransfers = work.filter((w) => w.hasPendingTransfer).length;
   const recordings = data.recordings.filter(
     (r) => r.clientId === client.id,
-  ).length;
-  const demoReady = work.filter((w) =>
-    derived.demoReadyItemIds.has(w.id),
   ).length;
 
   const handleDelete = async () => {
@@ -126,9 +121,9 @@ export function ClientCard({ client }: { client: Client }) {
       </div>
 
       <div className="mt-3 grid grid-cols-4 gap-2 border-t border-ink-100 pt-3">
+        <Stat icon={LayoutList} label="Total" value={totalWork} />
         <Stat icon={Briefcase} label="Active" value={activeWork} />
-        <Stat icon={MessageSquare} label="Feedback" value={feedbackPending} />
-        <Stat icon={Rocket} label="Demo-ready" value={demoReady} />
+        <Stat icon={CheckCircle2} label="Completed" value={completedWork} />
         <Stat icon={Video} label="Recordings" value={recordings} />
       </div>
 
