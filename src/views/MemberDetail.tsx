@@ -485,16 +485,26 @@ export function MemberDetail() {
                 label="Qualification"
                 value={member.qualification}
               />
-              <MetaItem
-                icon={Timer}
-                label="Tenure"
-                value={`${timeSince(member.joinDate)} on desk`}
-              />
-              <MetaItem
-                icon={CalendarDays}
-                label="Joined"
-                value={formatDate(member.joinDate)}
-              />
+              {member.role === 'Founder' ? (
+                <MetaItem
+                  icon={Sparkles}
+                  label="Tenure"
+                  value="Since inception"
+                />
+              ) : (
+                <>
+                  <MetaItem
+                    icon={Timer}
+                    label="Tenure"
+                    value={`${timeSince(member.joinDate)} on desk`}
+                  />
+                  <MetaItem
+                    icon={CalendarDays}
+                    label="Joined"
+                    value={formatDate(member.joinDate)}
+                  />
+                </>
+              )}
               <MetaItem
                 icon={Mail}
                 label="Email"

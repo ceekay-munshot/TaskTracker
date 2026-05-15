@@ -186,23 +186,30 @@ export function TeamMemberModal({ open, onClose, editing, prefill }: Props) {
             />
           </Field>
           <Field label="Join date">
-            <div className="flex gap-2">
-              <TextInput
-                type="date"
-                value={draft.joinDate}
-                onChange={(e) => set({ joinDate: e.target.value })}
-                className="flex-1"
-              />
-              <button
-                type="button"
-                onClick={setSinceInception}
-                title={`Set join date to ${inceptionDate}`}
-                className="btn-ghost shrink-0 whitespace-nowrap"
-              >
-                <Sparkles className="h-4 w-4" />
+            {draft.role === 'Founder' ? (
+              <div className="flex h-[42px] items-center gap-2 rounded-xl border border-ink-200 bg-ink-50 px-3.5 text-sm text-ink-600">
+                <Sparkles className="h-4 w-4 text-brand-500" />
                 Since inception
-              </button>
-            </div>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <TextInput
+                  type="date"
+                  value={draft.joinDate}
+                  onChange={(e) => set({ joinDate: e.target.value })}
+                  className="flex-1"
+                />
+                <button
+                  type="button"
+                  onClick={setSinceInception}
+                  title={`Set join date to ${inceptionDate}`}
+                  className="btn-ghost shrink-0 whitespace-nowrap"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Since inception
+                </button>
+              </div>
+            )}
           </Field>
         </div>
 
