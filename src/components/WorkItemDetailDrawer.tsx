@@ -39,6 +39,7 @@ import { TimelineReplay } from '@/components/TimelineReplay';
 import { DemoReadinessChecklist } from '@/components/DemoReadinessChecklist';
 import { ImprovementPriorityList } from '@/components/ImprovementPriorityList';
 import { daysUntil, formatDate } from '@/utils/dates';
+import { effectiveStatus } from '@/utils/workItem';
 import { getYouTubeWatchUrl } from '@/utils/youtube';
 
 interface Props {
@@ -152,7 +153,7 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
           {/* Badges */}
           <div className="flex flex-wrap items-center gap-2">
             <TypeBadge type={wi.type} />
-            <StatusBadge status={wi.status} />
+            <StatusBadge status={effectiveStatus(wi, data.workflowStages)} />
             <PriorityBadge priority={wi.priority} />
             <WorkflowStageBadge stage={wi.currentStage} />
             {health && <ProjectHealthBadge health={health} showPoints />}

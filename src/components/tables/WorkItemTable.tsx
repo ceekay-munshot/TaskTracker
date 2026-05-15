@@ -26,6 +26,7 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { cn } from '@/utils/cn';
 import { daysUntil, formatDate } from '@/utils/dates';
+import { effectiveStatus } from '@/utils/workItem';
 
 function DueCell({ workItem }: { workItem: WorkItem }) {
   if (workItem.status === 'Completed') {
@@ -57,7 +58,7 @@ function DueCell({ workItem }: { workItem: WorkItem }) {
 }
 
 export function WorkItemTable({ items }: { items: WorkItem[] }) {
-  const { getMember, getClient, deleteWorkItem } = useStore();
+  const { data, getMember, getClient, deleteWorkItem } = useStore();
   const ui = useUI();
   const confirm = useConfirm();
   const toast = useToast();
@@ -173,7 +174,7 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
                   <WorkflowStageBadge stage={wi.currentStage} size="xs" />
                 </td>
                 <td className="px-2 py-2.5">
-                  <StatusBadge status={wi.status} />
+                  <StatusBadge status={effectiveStatus(wi, data.workflowStages)} />
                 </td>
                 <td className="w-28 px-2 py-2.5">
                   <ProgressBar
