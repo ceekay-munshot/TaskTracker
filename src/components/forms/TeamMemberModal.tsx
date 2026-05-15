@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { UserPlus } from 'lucide-react';
+import { Sparkles, UserPlus } from 'lucide-react';
 import { MEMBER_STATUSES, TEAM_ROLES, type TeamMember } from '@/types';
 import { useStore } from '@/store/StoreContext';
 import { useToast } from '@/components/ui/Toast';
@@ -61,6 +61,12 @@ export function TeamMemberModal({ open, onClose, editing, prefill }: Props) {
 
   const set = (patch: Partial<Draft>) =>
     setDraft((d) => ({ ...d, ...patch }));
+
+  // The founder's joinDate is the company's start; fall back to the
+  // documented inception date if no founder exists yet.
+  const inceptionDate =
+    data.teamMembers.find((m) => m.role === 'Founder')?.joinDate ??
+    '2023-01-10';
 
   const submit = () => {
     const errs: Record<string, string> = {};
@@ -175,11 +181,23 @@ export function TeamMemberModal({ open, onClose, editing, prefill }: Props) {
             />
           </Field>
           <Field label="Join date">
-            <TextInput
-              type="date"
-              value={draft.joinDate}
-              onChange={(e) => set({ joinDate: e.target.value })}
-            />
+            <div className="flex gap-2">
+              <TextInput
+                type="date"
+                value={draft.joinDate}
+                onChange={(e) => set({ joinDate: e.target.value })}
+                className="flex-1"
+              />
+              <button
+                type="button"
+                onClick={() => set({ joinDate: inceptionDate })}
+                title={`Set join date to ${inceptionDate}`}
+                className="btn-ghost shrink-0 whitespace-nowrap"
+              >
+                <Sparkles className="h-4 w-4" />
+                Since inception
+              </button>
+            </div>
           </Field>
         </div>
 
