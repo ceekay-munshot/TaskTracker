@@ -148,11 +148,11 @@ function Stat({
 }) {
   return (
     <div className="text-center">
-      <Icon className="mx-auto h-3.5 w-3.5 text-ink-300" />
-      <p className="mt-0.5 font-display text-sm font-extrabold text-ink-800">
+      <Icon className="mx-auto h-3 w-3 text-ink-300" />
+      <p className="mt-0.5 font-display text-xs font-extrabold text-ink-800">
         {value}
       </p>
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-400">
+      <p className="text-[9px] font-semibold uppercase tracking-wide text-ink-400">
         {label}
       </p>
     </div>
