@@ -46,6 +46,7 @@ import { BarChartView, DonutChartView, TrendChartView } from '@/components/chart
 import { isBacklogFeedback } from '@/utils/improvements';
 import { countBy, sortByKey } from '@/utils/collections';
 import { formatDate, monthLabel, recentMonthKeys, monthKey } from '@/utils/dates';
+import { effectiveStatus } from '@/utils/workItem';
 import { chartColor } from '@/utils/palette';
 import { cn } from '@/utils/cn';
 import type { ExcelSheet, PptSummary } from '@/utils/export';
@@ -893,7 +894,7 @@ export function ClientDetail() {
                             color={w.progress >= 100 ? 'emerald' : 'indigo'}
                           />
                         </div>
-                        <StatusBadge status={w.status} />
+                        <StatusBadge status={effectiveStatus(w, data.workflowStages)} />
                         {health && (
                           <span
                             className={cn(
