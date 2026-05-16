@@ -36,7 +36,13 @@ function DueCell({ workItem }: { workItem: WorkItem }) {
       </span>
     );
   }
+  if (!workItem.dueDate) {
+    return <span className="text-xs text-ink-400">—</span>;
+  }
   const d = daysUntil(workItem.dueDate);
+  if (Number.isNaN(d)) {
+    return <span className="text-xs text-ink-400">—</span>;
+  }
   const tone =
     d < 0
       ? 'text-rose-600'

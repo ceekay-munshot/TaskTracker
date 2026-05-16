@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   Activity,
   CheckCircle2,
+  CircleDashed,
   GitBranch,
   KanbanSquare,
   LayoutGrid,
@@ -61,6 +62,8 @@ export function GlobalWorkTracker() {
   const [search, setSearch] = useState('');
   const [owner, setOwner] = useState('');
   const [client, setClient] = useState('');
+  type StatusFilter = 'all' | 'active' | 'not-started' | 'completed';
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   const hasActiveFilters =
     search.trim() !== '' || owner !== '' || client !== '';
@@ -71,7 +74,7 @@ export function GlobalWorkTracker() {
     setClient('');
   };
 
-  const filteredItems = useMemo(() => {
+  const baseItems = useMemo(() => {
     const term = search.trim().toLowerCase();
     return data.workItems.filter((w) => {
       if (owner && w.ownerId !== owner) return false;
@@ -97,22 +100,29 @@ export function GlobalWorkTracker() {
     });
   }, [data.workItems, getClient, getMember, search, owner, client]);
 
+  const filteredItems = useMemo(() => {
+    if (statusFilter === 'all') return baseItems;
+    if (statusFilter === 'completed')
+      return baseItems.filter((w) => w.status === 'Completed');
+    if (statusFilter === 'not-started')
+      return baseItems.filter((w) => w.status === 'Not Started');
+    return baseItems.filter((w) => w.status !== 'Completed');
+  }, [baseItems, statusFilter]);
+
   const stats = useMemo(() => {
-    const active = filteredItems.filter((w) => w.status !== 'Completed');
-    const completed = filteredItems.filter((w) => w.status === 'Completed');
     return {
-      total: filteredItems.length,
-      active: active.length,
-      completed: completed.length,
-      live: filteredItems.filter((w) => w.status === 'Live').length,
-      blocked: filteredItems.filter((w) => w.status === 'Blocked').length,
-      overdue: filteredItems.filter(
+      total: baseItems.length,
+      active: baseItems.filter((w) => w.status !== 'Completed').length,
+      notStarted: baseItems.filter((w) => w.status === 'Not Started').length,
+      completed: baseItems.filter((w) => w.status === 'Completed').length,
+      live: baseItems.filter((w) => w.status === 'Live').length,
+      blocked: baseItems.filter((w) => w.status === 'Blocked').length,
+      overdue: baseItems.filter(
         (w) => w.status !== 'Completed' && isOverdue(w.dueDate),
       ).length,
-      pendingTransfers: filteredItems.filter((w) => w.hasPendingTransfer)
-        .length,
+      pendingTransfers: baseItems.filter((w) => w.hasPendingTransfer).length,
     };
-  }, [filteredItems]);
+  }, [baseItems]);
 
   /* Ordered stage config — the funnel + kanban single source of truth. */
   const orderedStages = useMemo(
@@ -260,25 +270,47 @@ export function GlobalWorkTracker() {
         }
       />
 
-      {/* KPI grid */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      {/* KPI grid — click a tile to filter the table below */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="Total Work"
           value={stats.total}
           icon={LayoutGrid}
           color="indigo"
+          active={statusFilter === 'all'}
+          onClick={() => setStatusFilter('all')}
         />
         <MetricCard
           label="Active"
           value={stats.active}
           icon={Activity}
           color="violet"
+          active={statusFilter === 'active'}
+          onClick={() =>
+            setStatusFilter((f) => (f === 'active' ? 'all' : 'active'))
+          }
+        />
+        <MetricCard
+          label="Not Started"
+          value={stats.notStarted}
+          icon={CircleDashed}
+          color="amber"
+          active={statusFilter === 'not-started'}
+          onClick={() =>
+            setStatusFilter((f) =>
+              f === 'not-started' ? 'all' : 'not-started',
+            )
+          }
         />
         <MetricCard
           label="Completed"
           value={stats.completed}
           icon={CheckCircle2}
           color="emerald"
+          active={statusFilter === 'completed'}
+          onClick={() =>
+            setStatusFilter((f) => (f === 'completed' ? 'all' : 'completed'))
+          }
         />
       </div>
 
