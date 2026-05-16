@@ -98,8 +98,11 @@ const LEGACY_STAGE_MAP: Record<string, WorkflowStage> = {
   'Client Demo': 'Live on Munshot',
   'Client Feedback': 'Live on Munshot',
   'Improvement Backlog': 'Live on Munshot',
-  'Final Completion': 'Live on Munshot',
+  'Final Completion': 'Finalized',
   'Claude Work': 'Claude Work',
+  'Feedback': 'Feedback',
+  'Improvements': 'Improvements',
+  'Finalized': 'Finalized',
 };
 
 function mapLegacyStage(stage: string): WorkflowStage {
@@ -149,6 +152,23 @@ function migrateWorkItem(w: WorkItem): WorkItem {
   };
 }
 
+function deriveStage(checkpoints: {
+  clientMeetingDone: boolean;
+  claudeWorkStarted: boolean;
+  liveOnMunshot: boolean;
+  feedbackTaken: boolean;
+  improvementsInProgress: boolean;
+  dashboardFinalized: boolean;
+}): WorkflowStage {
+  if (checkpoints.dashboardFinalized) return 'Finalized';
+  if (checkpoints.improvementsInProgress) return 'Improvements';
+  if (checkpoints.feedbackTaken) return 'Feedback';
+  if (checkpoints.liveOnMunshot) return 'Live on Munshot';
+  if (checkpoints.claudeWorkStarted || checkpoints.clientMeetingDone)
+    return 'Claude Work';
+  return 'Client Meeting';
+}
+
 function ensureShape(raw: Partial<AppData>): AppData {
   const fallbackStages = cloneSeedData().workflowStages;
   const clients = (raw.clients ?? []) as LegacyClient[];
@@ -157,6 +177,9 @@ function ensureShape(raw: Partial<AppData>): AppData {
     'Client Meeting',
     'Claude Work',
     'Live on Munshot',
+    'Feedback',
+    'Improvements',
+    'Finalized',
   ]);
   const filteredStages = rawStages.filter((s) => knownStages.has(s.stage));
   return {
@@ -537,11 +560,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addWorkItem = useCallback((input: WorkItemInput) => {
     const id = uid('wi');
     const now = nowISO();
-    const stage: WorkflowStage = input.liveOnMunshot
-      ? 'Live on Munshot'
-      : input.claudeWorkStarted || input.clientMeetingDone
-        ? 'Claude Work'
-        : 'Client Meeting';
+    const stage = deriveStage({
+      clientMeetingDone: input.clientMeetingDone,
+      claudeWorkStarted: input.claudeWorkStarted,
+      liveOnMunshot: input.liveOnMunshot,
+      feedbackTaken: input.feedbackTaken,
+      improvementsInProgress: input.improvementsInProgress,
+      dashboardFinalized: input.dashboardFinalized,
+    });
     const primaryOwner = input.ownerIds[0] ?? '';
     const workItem: WorkItem = {
       ...input,
@@ -619,12 +645,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           next.ownerId = patch.ownerIds[0] ?? '';
         }
 
-        // Keep currentStage in sync with the 3 checkpoint booleans
-        const stage: WorkflowStage = next.liveOnMunshot
-          ? 'Live on Munshot'
-          : next.claudeWorkStarted || next.clientMeetingDone
-            ? 'Claude Work'
-            : 'Client Meeting';
+        // Keep currentStage in sync with the checkpoint booleans
+        const stage = deriveStage({
+          clientMeetingDone: next.clientMeetingDone,
+          claudeWorkStarted: next.claudeWorkStarted,
+          liveOnMunshot: next.liveOnMunshot,
+          feedbackTaken: next.feedbackTaken,
+          improvementsInProgress: next.improvementsInProgress,
+          dashboardFinalized: next.dashboardFinalized,
+        });
         next.currentStage = stage;
 
         // Stamp status-note when its text actually changes
