@@ -98,7 +98,7 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
       type: 'Dashboard',
       clientIds: defaultClient ? [defaultClient.id] : [],
       pocIds: defaultClient?.pocs[0] ? [defaultClient.pocs[0].id] : [],
-      ownerId: '',
+      ownerIds: [],
       priority: 'Medium',
       clientMeetingDone: false,
       claudeWorkStarted: false,
@@ -124,7 +124,7 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
               type: editing.type,
               clientIds: editing.clientIds,
               pocIds: editing.pocIds,
-              ownerId: editing.ownerId,
+              ownerIds: editing.ownerIds,
               priority: editing.priority,
               clientMeetingDone: editing.clientMeetingDone,
               claudeWorkStarted: editing.claudeWorkStarted,
@@ -274,17 +274,22 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
               />
             </Field>
             <Field
-              label="Owner"
-              hint="Leave unassigned if not decided yet"
+              label="Owners"
+              hint="Tick everyone working on this — leave blank if not decided yet"
+              className="sm:col-span-2"
             >
-              <Select
-                value={draft.ownerId}
-                onChange={(v) => set({ ownerId: v })}
+              <MultiSelect
+                value={draft.ownerIds}
+                onChange={(next) => set({ ownerIds: next })}
                 options={data.teamMembers.map((m) => ({
                   value: m.id,
-                  label: m.name,
+                  label: `${m.name} · ${m.role}`,
                 }))}
                 placeholder="— Not assigned —"
+                emptyHint="No team members yet"
+                summary={(count) =>
+                  count === 1 ? '1 owner' : `${count} owners`
+                }
               />
             </Field>
           </div>

@@ -19,7 +19,7 @@ export function computeMemberWorkload(
   member: TeamMember,
   data: AppData,
 ): MemberWorkloadStats {
-  const ownedWork = data.workItems.filter((w) => w.ownerId === member.id);
+  const ownedWork = data.workItems.filter((w) => w.ownerIds.includes(member.id));
   const ownedTasks = data.tasks.filter(
     (t) => t.ownerId === member.id && t.status !== 'Done',
   );
@@ -79,7 +79,7 @@ export function computeMemberPerformance(
   healthPointsByItem: Map<string, number>,
   demoReadyItemIds: Set<string>,
 ): MemberPerformanceStats {
-  const allOwned = data.workItems.filter((w) => w.ownerId === member.id);
+  const allOwned = data.workItems.filter((w) => w.ownerIds.includes(member.id));
   const completedOwned = allOwned.filter((w) => w.status === 'Completed');
   const activeOwned = allOwned.filter(isActive);
 

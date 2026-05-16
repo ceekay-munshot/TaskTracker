@@ -123,10 +123,18 @@ function migrateWorkItem(w: WorkItem): WorkItem {
     : w.pocId
       ? [w.pocId]
       : [];
+  const existingOwnerIds = Array.isArray(w.ownerIds) ? w.ownerIds : [];
+  const ownerIds = existingOwnerIds.length > 0
+    ? existingOwnerIds
+    : w.ownerId
+      ? [w.ownerId]
+      : [];
   return {
     ...w,
     pocId: pocIds[0] ?? w.pocId ?? null,
     pocIds,
+    ownerId: ownerIds[0] ?? w.ownerId ?? '',
+    ownerIds,
     clientIds,
     clientId: clientIds[0] ?? w.clientId ?? '',
     currentStage: stage,
@@ -206,7 +214,7 @@ export interface WorkItemInput {
   type: WorkItemType;
   clientIds: string[];
   pocIds: string[];
-  ownerId: string;
+  ownerIds: string[];
   priority: Priority;
   clientMeetingDone: boolean;
   claudeWorkStarted: boolean;
@@ -528,13 +536,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       : input.claudeWorkStarted || input.clientMeetingDone
         ? 'Claude Work'
         : 'Client Meeting';
+    const primaryOwner = input.ownerIds[0] ?? '';
     const workItem: WorkItem = {
       ...input,
       id,
       clientId: input.clientIds[0] ?? '',
       pocId: input.pocIds[0] ?? null,
+      ownerId: primaryOwner,
       currentStage: stage,
-      originalOwnerId: input.ownerId,
+      originalOwnerId: primaryOwner,
       previousOwnerIds: [],
       transferHistoryIds: [],
       linkedMeetingRecordingIds: [],
@@ -557,7 +567,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         workItemId: id,
         label,
         status: 'Pending',
-        ownerId: input.ownerId,
+        ownerId: primaryOwner,
         notes: '',
       }),
     );
@@ -597,6 +607,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         // Keep pocId (primary) in sync with pocIds[0]
         if (patch.pocIds) {
           next.pocId = patch.pocIds[0] ?? null;
+        }
+        // Keep ownerId (primary) in sync with ownerIds[0]
+        if (patch.ownerIds) {
+          next.ownerId = patch.ownerIds[0] ?? '';
         }
 
         // Keep currentStage in sync with the 3 checkpoint booleans

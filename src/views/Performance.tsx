@@ -96,7 +96,7 @@ export function Performance() {
       rows
         .map((r) => {
           const completed = data.workItems.filter(
-            (w) => w.ownerId === r.member.id && w.status === 'Completed',
+            (w) => w.ownerIds.includes(r.member.id) && w.status === 'Completed',
           );
           let onTime = 0;
           let delayed = 0;
@@ -156,7 +156,7 @@ export function Performance() {
         .map((r) => {
           const clientIds = new Set(
             data.workItems
-              .filter((w) => w.ownerId === r.member.id)
+              .filter((w) => w.ownerIds.includes(r.member.id))
               .map((w) => w.clientId),
           );
           return {

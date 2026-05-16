@@ -241,6 +241,7 @@ export interface WorkItem {
   pocId: string | null;
   pocIds: string[];
   ownerId: string;
+  ownerIds: string[];
   originalOwnerId: string;
   previousOwnerIds: string[];
   transferHistoryIds: string[];
