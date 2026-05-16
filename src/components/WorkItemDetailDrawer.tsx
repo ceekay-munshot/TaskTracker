@@ -9,7 +9,6 @@ import {
   ListChecks,
   MessageSquarePlus,
   Pencil,
-  Rocket,
   Video,
 } from 'lucide-react';
 import { useStore } from '@/store/StoreContext';
@@ -30,7 +29,6 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { MiniStat } from '@/components/ui/Panel';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { TimelineReplay } from '@/components/TimelineReplay';
-import { DemoReadinessChecklist } from '@/components/DemoReadinessChecklist';
 import { ImprovementPriorityList } from '@/components/ImprovementPriorityList';
 import { daysUntil, formatDate } from '@/utils/dates';
 import { effectiveStatus } from '@/utils/workItem';
@@ -57,7 +55,7 @@ function PipelineRow({
 }
 
 export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
-  const { data, derived, getMember, getClient } = useStore();
+  const { data, getMember, getClient } = useStore();
   const ui = useUI();
   const [tab, setTab] = useState('overview');
 
@@ -68,7 +66,6 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
   const open = Boolean(workItem);
   const wi = workItem;
 
-  const readiness = wi ? derived.readinessByItem.get(wi.id) : undefined;
   const owner = wi ? getMember(wi.ownerId) : undefined;
   const originalOwner = wi ? getMember(wi.originalOwnerId) : undefined;
   const allClients = wi
@@ -248,18 +245,12 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
           </div>
 
           {/* KPI strip */}
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2.5">
             <MiniStat
               label="Progress"
               value={`${wi.progress}%`}
               icon={Gauge}
               color="indigo"
-            />
-            <MiniStat
-              label="Readiness"
-              value={`${readiness?.percent ?? 0}%`}
-              icon={Rocket}
-              color="violet"
             />
             <MiniStat
               label={wi.status === 'Completed' ? 'Completed' : 'Due'}
@@ -294,7 +285,6 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
             tabs={[
               { id: 'overview', label: 'Overview' },
               { id: 'timeline', label: 'Timeline' },
-              { id: 'readiness', label: 'Readiness' },
             ]}
             active={tab}
             onChange={setTab}
@@ -498,10 +488,6 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
           )}
 
           {tab === 'timeline' && <TimelineReplay workItemId={wi.id} />}
-
-          {tab === 'readiness' && (
-            <DemoReadinessChecklist workItemId={wi.id} />
-          )}
         </div>
       )}
       {!wi && <EmptyState title="Work item not found" />}

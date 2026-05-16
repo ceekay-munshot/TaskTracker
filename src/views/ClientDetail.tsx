@@ -30,11 +30,7 @@ import { useUI } from '@/store/UIContext';
 import { Panel, SectionHeading, MiniStat } from '@/components/ui/Panel';
 import { ExportButtons } from '@/components/ui/ExportButtons';
 import { Avatar } from '@/components/ui/Avatar';
-import {
-  ClientStatusBadge,
-  ReadinessBadge,
-  StatusBadge,
-} from '@/components/ui/Badge';
+import { ClientStatusBadge, StatusBadge } from '@/components/ui/Badge';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Tabs } from '@/components/ui/Tabs';
@@ -56,7 +52,7 @@ type SubTab = 'work' | 'recordings' | 'feedback' | 'transfers' | 'timeline';
 export function ClientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data, derived, getClient, getMember } = useStore();
+  const { data, getClient, getMember } = useStore();
   const ui = useUI();
 
   const [tab, setTab] = useState<SubTab>('work');
@@ -116,9 +112,6 @@ export function ClientDetail() {
     const active = clientWorkItems.filter((w) => w.status !== 'Completed');
     const completed = clientWorkItems.filter((w) => w.status === 'Completed');
     const live = clientWorkItems.filter((w) => w.status === 'Live');
-    const demoReady = clientWorkItems.filter((w) =>
-      derived.demoReadyItemIds.has(w.id),
-    );
     const feedbackOpen = clientFeedback.filter(isBacklogFeedback);
     const pendingTransfers = clientTransfers.filter(
       (t) => t.status === 'Pending',
@@ -128,7 +121,6 @@ export function ClientDetail() {
       active: active.length,
       completed: completed.length,
       live: live.length,
-      demoReady: demoReady.length,
       feedbackOpen: feedbackOpen.length,
       recordings: clientRecordings.length,
       meetings: clientMeetings.length,
@@ -140,7 +132,6 @@ export function ClientDetail() {
     clientRecordings,
     clientMeetings,
     clientTransfers,
-    derived.demoReadyItemIds,
   ]);
 
   /* ------------------------------- charts --------------------------- */
@@ -238,10 +229,6 @@ export function ClientDetail() {
         { header: 'Stage', value: (w) => w.currentStage },
         { header: 'Status', value: (w) => w.status },
         { header: 'Priority', value: (w) => w.priority },
-        {
-          header: 'Readiness',
-          value: (w) => derived.readinessByItem.get(w.id)?.badge ?? '',
-        },
         { header: 'Progress %', value: (w) => w.progress },
         { header: 'Start', value: (w) => w.startDate },
         { header: 'Due', value: (w) => w.dueDate },
@@ -283,7 +270,6 @@ export function ClientDetail() {
       { label: 'Active work', value: stats.active },
       { label: 'Completed', value: stats.completed },
       { label: 'Live on Munshot', value: stats.live },
-      { label: 'Demo-ready', value: stats.demoReady },
       { label: 'Feedback open', value: stats.feedbackOpen },
       { label: 'Recordings', value: stats.recordings },
       { label: 'Pending transfers', value: stats.pendingTransfers },
@@ -522,12 +508,6 @@ export function ClientDetail() {
           color="cyan"
         />
         <MiniStat
-          label="Demo-Ready"
-          value={stats.demoReady}
-          icon={Sparkles}
-          color="emerald"
-        />
-        <MiniStat
           label="Feedback Open"
           value={stats.feedbackOpen}
           icon={MessageSquare}
@@ -634,63 +614,6 @@ export function ClientDetail() {
               iconColor="cyan"
             >
               <DonutChartView data={workByStatus} height={220} />
-            </Panel>
-            <Panel
-              title="Demo readiness across projects"
-              subtitle="Readiness checklist progress per work item"
-              icon={Sparkles}
-              iconColor="emerald"
-            >
-              {clientWorkItems.length === 0 ? (
-                <EmptyState
-                  icon={Sparkles}
-                  title="No work items yet"
-                  description="Add a dashboard or agent to track demo readiness."
-                  compact
-                />
-              ) : (
-                <ul className="space-y-2.5">
-                  {clientWorkItems.map((w) => {
-                    const readiness = derived.readinessByItem.get(w.id);
-                    return (
-                      <li
-                        key={w.id}
-                        className="rounded-xl border border-ink-100 bg-white/70 p-3"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => ui.openWorkItem(w.id)}
-                          className="flex w-full items-center justify-between gap-2 text-left"
-                        >
-                          <span className="truncate text-sm font-bold text-ink-800 hover:text-brand-600">
-                            {w.title}
-                          </span>
-                          {readiness && (
-                            <ReadinessBadge
-                              badge={readiness.badge}
-                              percent={readiness.percent}
-                            />
-                          )}
-                        </button>
-                        {readiness && (
-                          <ProgressBar
-                            value={readiness.percent}
-                            className="mt-2"
-                            size="sm"
-                            color={
-                              readiness.badge === 'Demo Ready'
-                                ? 'emerald'
-                                : readiness.badge === 'Almost Ready'
-                                  ? 'amber'
-                                  : 'rose'
-                            }
-                          />
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
             </Panel>
           </div>
 

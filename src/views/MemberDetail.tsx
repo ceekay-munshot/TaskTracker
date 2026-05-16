@@ -960,12 +960,6 @@ export function MemberDetail() {
                     icon={Video}
                     color="fuchsia"
                   />
-                  <MiniStat
-                    label="Demo-ready Projects"
-                    value={performance.demoReadyProjects}
-                    icon={CheckCircle2}
-                    color="emerald"
-                  />
                 </div>
               </Panel>
             </>
