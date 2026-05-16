@@ -1,16 +1,12 @@
 import { useMemo, useState } from 'react';
 import {
   Activity,
-  AlertOctagon,
-  ArrowLeftRight,
-  CalendarClock,
   CheckCircle2,
   GitBranch,
   KanbanSquare,
   LayoutGrid,
   LayoutList,
   Plus,
-  Rocket,
   Trash2,
   Workflow,
 } from 'lucide-react';
@@ -103,9 +99,11 @@ export function GlobalWorkTracker() {
 
   const stats = useMemo(() => {
     const active = filteredItems.filter((w) => w.status !== 'Completed');
+    const completed = filteredItems.filter((w) => w.status === 'Completed');
     return {
       total: filteredItems.length,
       active: active.length,
+      completed: completed.length,
       live: filteredItems.filter((w) => w.status === 'Live').length,
       blocked: filteredItems.filter((w) => w.status === 'Blocked').length,
       overdue: filteredItems.filter(
@@ -271,7 +269,7 @@ export function GlobalWorkTracker() {
       />
 
       {/* KPI grid */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
+      <div className="grid gap-3 sm:grid-cols-3">
         <MetricCard
           label="Total Work"
           value={stats.total}
@@ -285,32 +283,8 @@ export function GlobalWorkTracker() {
           color="violet"
         />
         <MetricCard
-          label="Live"
-          value={stats.live}
-          icon={Rocket}
-          color="cyan"
-        />
-        <MetricCard
-          label="Blocked"
-          value={stats.blocked}
-          icon={AlertOctagon}
-          color="rose"
-        />
-        <MetricCard
-          label="Overdue"
-          value={stats.overdue}
-          icon={CalendarClock}
-          color="orange"
-        />
-        <MetricCard
-          label="Pending Transfer"
-          value={stats.pendingTransfers}
-          icon={ArrowLeftRight}
-          color="amber"
-        />
-        <MetricCard
-          label="Demo-Ready"
-          value={stats.demoReady}
+          label="Completed"
+          value={stats.completed}
           icon={CheckCircle2}
           color="emerald"
         />
