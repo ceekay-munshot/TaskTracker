@@ -1,5 +1,16 @@
 import { useEffect, useState } from 'react';
-import { ListChecks, Plus, X } from 'lucide-react';
+import {
+  CheckCircle2,
+  Inbox,
+  ListChecks,
+  MessagesSquare,
+  Plus,
+  Rocket,
+  Sparkles,
+  Wrench,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
 import {
   PRIORITIES,
   WORK_ITEM_STATUSES,
@@ -17,16 +28,134 @@ import {
   Select,
   TextArea,
   TextInput,
-  Toggle,
   toOptions,
 } from '@/components/ui/Field';
 import { todayISO } from '@/utils/dates';
+import { cn } from '@/utils/cn';
 
 interface Props {
   open: boolean;
   onClose: () => void;
   editing?: WorkItem;
   prefill?: Partial<WorkItemInput>;
+}
+
+type CheckpointTone =
+  | 'sky'
+  | 'indigo'
+  | 'emerald'
+  | 'amber'
+  | 'fuchsia'
+  | 'rose';
+
+const CHECKPOINT_TONES: Record<
+  CheckpointTone,
+  { ring: string; bg: string; text: string; activeBorder: string; activeBg: string }
+> = {
+  sky: {
+    ring: 'bg-sky-100 text-sky-600',
+    bg: 'bg-white',
+    text: 'text-sky-700',
+    activeBorder: 'border-sky-300',
+    activeBg: 'bg-gradient-to-br from-sky-50 to-cyan-50',
+  },
+  indigo: {
+    ring: 'bg-indigo-100 text-indigo-600',
+    bg: 'bg-white',
+    text: 'text-indigo-700',
+    activeBorder: 'border-indigo-300',
+    activeBg: 'bg-gradient-to-br from-indigo-50 to-violet-50',
+  },
+  emerald: {
+    ring: 'bg-emerald-100 text-emerald-600',
+    bg: 'bg-white',
+    text: 'text-emerald-700',
+    activeBorder: 'border-emerald-300',
+    activeBg: 'bg-gradient-to-br from-emerald-50 to-teal-50',
+  },
+  amber: {
+    ring: 'bg-amber-100 text-amber-600',
+    bg: 'bg-white',
+    text: 'text-amber-700',
+    activeBorder: 'border-amber-300',
+    activeBg: 'bg-gradient-to-br from-amber-50 to-orange-50',
+  },
+  fuchsia: {
+    ring: 'bg-fuchsia-100 text-fuchsia-600',
+    bg: 'bg-white',
+    text: 'text-fuchsia-700',
+    activeBorder: 'border-fuchsia-300',
+    activeBg: 'bg-gradient-to-br from-fuchsia-50 to-pink-50',
+  },
+  rose: {
+    ring: 'bg-rose-100 text-rose-600',
+    bg: 'bg-white',
+    text: 'text-rose-700',
+    activeBorder: 'border-rose-300',
+    activeBg: 'bg-gradient-to-br from-rose-50 to-pink-50',
+  },
+};
+
+function Checkpoint({
+  icon: Icon,
+  tone,
+  title,
+  description,
+  checked,
+  onChange,
+}: {
+  icon: LucideIcon;
+  tone: CheckpointTone;
+  title: string;
+  description: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  const t = CHECKPOINT_TONES[tone];
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={cn(
+        'group flex items-center gap-3 rounded-xl border p-3 text-left transition-all',
+        checked
+          ? `${t.activeBorder} ${t.activeBg} shadow-sm`
+          : 'border-ink-200 bg-white hover:border-ink-300 hover:bg-ink-50/50',
+      )}
+    >
+      <div
+        className={cn(
+          'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition',
+          t.ring,
+        )}
+      >
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p
+          className={cn(
+            'text-xs font-bold leading-tight',
+            checked ? t.text : 'text-ink-800',
+          )}
+        >
+          {title}
+        </p>
+        <p className="mt-0.5 text-[11px] leading-snug text-ink-400">
+          {description}
+        </p>
+      </div>
+      <div
+        className={cn(
+          'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition',
+          checked
+            ? `${t.activeBorder} bg-white`
+            : 'border-ink-300 bg-white group-hover:border-ink-400',
+        )}
+      >
+        {checked && <CheckCircle2 className={cn('h-4 w-4', t.text)} />}
+      </div>
+    </button>
+  );
 }
 
 function LinksEditor({
@@ -103,6 +232,9 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
       clientMeetingDone: false,
       claudeWorkStarted: false,
       liveOnMunshot: false,
+      feedbackTaken: false,
+      improvementsInProgress: false,
+      dashboardFinalized: false,
       statusNote: '',
       status: 'Not Started',
       startDate: todayISO(),
@@ -129,6 +261,9 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
               clientMeetingDone: editing.clientMeetingDone,
               claudeWorkStarted: editing.claudeWorkStarted,
               liveOnMunshot: editing.liveOnMunshot,
+              feedbackTaken: editing.feedbackTaken,
+              improvementsInProgress: editing.improvementsInProgress,
+              dashboardFinalized: editing.dashboardFinalized,
               statusNote: editing.statusNote,
               status: editing.status,
               startDate: editing.startDate,
@@ -307,27 +442,57 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
           <div>
             <p className="section-title">Workflow checkpoints</p>
             <p className="text-[11px] text-ink-400">
-              Three simple flags — toggle on as each step is done
+              Tap each card as the step is done
             </p>
           </div>
-          <div className="space-y-2 rounded-xl bg-ink-50 p-3">
-            <Toggle
-              checked={draft.clientMeetingDone}
-              onChange={(checked) => set({ clientMeetingDone: checked })}
-              label="Client meeting done"
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <Checkpoint
+              icon={MessagesSquare}
+              tone="sky"
+              title="Client meeting done"
               description="Requirements discussed and captured"
+              checked={draft.clientMeetingDone}
+              onChange={(v) => set({ clientMeetingDone: v })}
             />
-            <Toggle
-              checked={draft.claudeWorkStarted}
-              onChange={(checked) => set({ claudeWorkStarted: checked })}
-              label="Claude work started"
+            <Checkpoint
+              icon={Sparkles}
+              tone="indigo"
+              title="Claude work started"
               description="Build is in progress on this deliverable"
+              checked={draft.claudeWorkStarted}
+              onChange={(v) => set({ claudeWorkStarted: v })}
             />
-            <Toggle
+            <Checkpoint
+              icon={Rocket}
+              tone="emerald"
+              title="Live on Munshot"
+              description="Deployed and live for the client"
               checked={draft.liveOnMunshot}
-              onChange={(checked) => set({ liveOnMunshot: checked })}
-              label="Live on Munshot"
-              description="Deliverable is deployed and live for the client"
+              onChange={(v) => set({ liveOnMunshot: v })}
+            />
+            <Checkpoint
+              icon={Inbox}
+              tone="amber"
+              title="Took feedback from client"
+              description="Post-launch feedback collected and logged"
+              checked={draft.feedbackTaken}
+              onChange={(v) => set({ feedbackTaken: v })}
+            />
+            <Checkpoint
+              icon={Wrench}
+              tone="fuchsia"
+              title="Working on improvements"
+              description="Iterating on feedback right now"
+              checked={draft.improvementsInProgress}
+              onChange={(v) => set({ improvementsInProgress: v })}
+            />
+            <Checkpoint
+              icon={CheckCircle2}
+              tone="rose"
+              title="Finalized dashboard"
+              description="Everything wrapped — work is done"
+              checked={draft.dashboardFinalized}
+              onChange={(v) => set({ dashboardFinalized: v })}
             />
           </div>
         </section>

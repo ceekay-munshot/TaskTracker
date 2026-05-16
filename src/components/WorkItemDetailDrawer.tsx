@@ -321,6 +321,24 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
                       {wi.liveOnMunshot ? 'Live' : 'Not live'}
                     </Badge>
                   </PipelineRow>
+                  <PipelineRow label="Took feedback from client">
+                    <Badge color={wi.feedbackTaken ? 'amber' : 'slate'} soft>
+                      {wi.feedbackTaken ? 'Received' : 'Pending'}
+                    </Badge>
+                  </PipelineRow>
+                  <PipelineRow label="Working on improvements">
+                    <Badge
+                      color={wi.improvementsInProgress ? 'fuchsia' : 'slate'}
+                      soft
+                    >
+                      {wi.improvementsInProgress ? 'In progress' : 'Not started'}
+                    </Badge>
+                  </PipelineRow>
+                  <PipelineRow label="Finalized dashboard">
+                    <Badge color={wi.dashboardFinalized ? 'emerald' : 'slate'} soft>
+                      {wi.dashboardFinalized ? 'Finalized' : 'Not finalized'}
+                    </Badge>
+                  </PipelineRow>
                 </div>
               </div>
 

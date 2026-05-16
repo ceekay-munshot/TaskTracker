@@ -141,6 +141,9 @@ function migrateWorkItem(w: WorkItem): WorkItem {
     clientMeetingDone: meeting,
     claudeWorkStarted: claude,
     liveOnMunshot: live,
+    feedbackTaken: w.feedbackTaken ?? false,
+    improvementsInProgress: w.improvementsInProgress ?? false,
+    dashboardFinalized: w.dashboardFinalized ?? false,
     statusNote: w.statusNote ?? '',
     statusNoteUpdatedAt: w.statusNoteUpdatedAt ?? null,
   };
@@ -219,6 +222,9 @@ export interface WorkItemInput {
   clientMeetingDone: boolean;
   claudeWorkStarted: boolean;
   liveOnMunshot: boolean;
+  feedbackTaken: boolean;
+  improvementsInProgress: boolean;
+  dashboardFinalized: boolean;
   statusNote: string;
   status: WorkItemStatus;
   startDate: string;
