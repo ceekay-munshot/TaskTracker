@@ -239,10 +239,6 @@ export function ClientDetail() {
         { header: 'Status', value: (w) => w.status },
         { header: 'Priority', value: (w) => w.priority },
         {
-          header: 'Health',
-          value: (w) => derived.healthByItem.get(w.id)?.score ?? '',
-        },
-        {
           header: 'Readiness',
           value: (w) => derived.readinessByItem.get(w.id)?.badge ?? '',
         },
@@ -852,7 +848,6 @@ export function ClientDetail() {
               <ol className="space-y-2">
                 {deliveryTimeline.map((w) => {
                   const owner = getMember(w.ownerId);
-                  const health = derived.healthByItem.get(w.id);
                   return (
                     <li key={w.id}>
                       <button
@@ -895,17 +890,6 @@ export function ClientDetail() {
                           />
                         </div>
                         <StatusBadge status={effectiveStatus(w, data.workflowStages)} />
-                        {health && (
-                          <span
-                            className={cn(
-                              'hidden h-2 w-2 shrink-0 rounded-full md:block',
-                              health.score === 'Green' && 'bg-emerald-500',
-                              health.score === 'Yellow' && 'bg-amber-500',
-                              health.score === 'Red' && 'bg-rose-500',
-                            )}
-                            title={`Health: ${health.score}`}
-                          />
-                        )}
                       </button>
                     </li>
                   );

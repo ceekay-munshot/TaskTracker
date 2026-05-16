@@ -63,7 +63,6 @@ export function PerformanceLeaderboard({
             <th className="px-2 pb-1 text-center">Blocked</th>
             <th className="px-2 pb-1 text-center">In / Out</th>
             <th className="px-2 pb-1 text-center">Recs</th>
-            <th className="px-2 pb-1 text-center">Health</th>
             <th className="px-2 pb-1 text-center">Demo-ready</th>
           </tr>
         </thead>
@@ -131,7 +130,6 @@ export function PerformanceLeaderboard({
                 value={`${stats.workReceived}/${stats.workTransferredOut}`}
               />
               <Cell value={stats.recordingsHandled} />
-              <Cell value={stats.averageHealthPoints} />
               <td className="rounded-r-xl px-2 py-2.5 text-center font-bold tabular-nums text-ink-700">
                 {stats.demoReadyProjects}
               </td>

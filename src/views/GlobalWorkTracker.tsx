@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   Activity,
   AlertOctagon,
-  AlertTriangle,
   ArrowLeftRight,
   CalendarClock,
   CheckCircle2,
@@ -16,9 +15,7 @@ import {
   Workflow,
 } from 'lucide-react';
 import {
-  HEALTH_SCORES,
   WORKFLOW_STAGES,
-  type HealthScore,
   type WorkItem,
   type WorkflowStage,
 } from '@/types';
@@ -39,17 +36,9 @@ import { WorkItemTable } from '@/components/tables/WorkItemTable';
 import { BarChartView } from '@/components/charts/Charts';
 import { isOverdue } from '@/utils/dates';
 import { sortByKey } from '@/utils/collections';
-import { COLORS } from '@/utils/palette';
-import { cn } from '@/utils/cn';
 import type { ExcelSheet, ExportColumn, PptSummary } from '@/utils/export';
 
 type WorkView = 'table' | 'kanban' | 'timeline';
-
-const HEALTH_DOT: Record<HealthScore, string> = {
-  Green: COLORS.emerald.solid,
-  Yellow: COLORS.amber.solid,
-  Red: COLORS.rose.solid,
-};
 
 export function GlobalWorkTracker() {
   const { data, derived, getMember, getClient, deleteAllWorkItems } = useStore();
@@ -124,9 +113,6 @@ export function GlobalWorkTracker() {
       ).length,
       pendingTransfers: filteredItems.filter((w) => w.hasPendingTransfer)
         .length,
-      redHealth: filteredItems.filter(
-        (w) => derived.healthByItem.get(w.id)?.score === 'Red',
-      ).length,
       demoReady: filteredItems.filter((w) =>
         derived.demoReadyItemIds.has(w.id),
       ).length,
@@ -175,10 +161,6 @@ export function GlobalWorkTracker() {
       { header: 'Stage', value: (w) => w.currentStage },
       { header: 'Status', value: (w) => w.status },
       { header: 'Priority', value: (w) => w.priority },
-      {
-        header: 'Health',
-        value: (w) => derived.healthByItem.get(w.id)?.score ?? '',
-      },
       {
         header: 'Demo Readiness %',
         value: (w) => derived.readinessByItem.get(w.id)?.percent ?? 0,
@@ -231,7 +213,6 @@ export function GlobalWorkTracker() {
       { label: 'Blocked', value: stats.blocked },
       { label: 'Overdue', value: stats.overdue },
       { label: 'Pending transfers', value: stats.pendingTransfers },
-      { label: 'Red health', value: stats.redHealth },
       { label: 'Demo-ready', value: stats.demoReady },
     ],
     charts: [
@@ -264,7 +245,6 @@ export function GlobalWorkTracker() {
           getMember(w.ownerId)?.name ?? '',
           w.currentStage,
           w.status,
-          derived.healthByItem.get(w.id)?.score ?? '',
           `${w.progress}%`,
         ]),
       },
@@ -327,12 +307,6 @@ export function GlobalWorkTracker() {
           value={stats.pendingTransfers}
           icon={ArrowLeftRight}
           color="amber"
-        />
-        <MetricCard
-          label="Red Health"
-          value={stats.redHealth}
-          icon={AlertTriangle}
-          color="rose"
         />
         <MetricCard
           label="Demo-Ready"
@@ -493,15 +467,6 @@ export function GlobalWorkTracker() {
               {orderedStages.map((s) => {
                 const items = stageBuckets.get(s.stage) ?? [];
                 const count = items.length;
-                const breakdown: Record<HealthScore, number> = {
-                  Green: 0,
-                  Yellow: 0,
-                  Red: 0,
-                };
-                items.forEach((w) => {
-                  const score = derived.healthByItem.get(w.id)?.score;
-                  if (score) breakdown[score] += 1;
-                });
                 return (
                   <div
                     key={s.id}
@@ -523,23 +488,6 @@ export function GlobalWorkTracker() {
                     <span className="w-8 shrink-0 text-right font-display text-sm font-extrabold tabular-nums text-ink-800">
                       {count}
                     </span>
-                    <div className="flex w-20 shrink-0 items-center justify-end gap-2">
-                      {HEALTH_SCORES.map((score) => (
-                        <span
-                          key={score}
-                          className="inline-flex items-center gap-1 text-[11px] font-bold text-ink-500"
-                          title={`${score} health`}
-                        >
-                          <span
-                            className={cn(
-                              'h-2 w-2 rounded-full',
-                              HEALTH_DOT[score],
-                            )}
-                          />
-                          {breakdown[score]}
-                        </span>
-                      ))}
-                    </div>
                   </div>
                 );
               })}

@@ -10,7 +10,6 @@ import {
   MessageSquarePlus,
   Pencil,
   Rocket,
-  Sparkles,
   Video,
 } from 'lucide-react';
 import { useStore } from '@/store/StoreContext';
@@ -20,7 +19,6 @@ import { Tabs } from '@/components/ui/Tabs';
 import {
   Badge,
   PriorityBadge,
-  ProjectHealthBadge,
   StatusBadge,
   TaskStatusBadge,
   TransferStatusBadge,
@@ -70,7 +68,6 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
   const open = Boolean(workItem);
   const wi = workItem;
 
-  const health = wi ? derived.healthByItem.get(wi.id) : undefined;
   const readiness = wi ? derived.readinessByItem.get(wi.id) : undefined;
   const owner = wi ? getMember(wi.ownerId) : undefined;
   const originalOwner = wi ? getMember(wi.originalOwnerId) : undefined;
@@ -154,7 +151,6 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
             <StatusBadge status={effectiveStatus(wi, data.workflowStages)} />
             <PriorityBadge priority={wi.priority} />
             <WorkflowStageBadge stage={wi.currentStage} />
-            {health && <ProjectHealthBadge health={health} showPoints />}
             {wi.hasPendingTransfer && (
               <Badge color="amber" soft>
                 <ArrowLeftRight className="h-3 w-3" /> Pending transfer
@@ -240,24 +236,12 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
           </div>
 
           {/* KPI strip */}
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             <MiniStat
               label="Progress"
               value={`${wi.progress}%`}
               icon={Gauge}
               color="indigo"
-            />
-            <MiniStat
-              label="Health pts"
-              value={health?.points ?? 0}
-              icon={Sparkles}
-              color={
-                health?.score === 'Red'
-                  ? 'rose'
-                  : health?.score === 'Yellow'
-                    ? 'amber'
-                    : 'emerald'
-              }
             />
             <MiniStat
               label="Readiness"
@@ -348,24 +332,6 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
                   </p>
                 )}
               </div>
-
-              {/* Health reasons */}
-              {health && (
-                <div>
-                  <p className="section-title mb-2">Health signals</p>
-                  <ul className="space-y-1">
-                    {health.reasons.map((reason, i) => (
-                      <li
-                        key={i}
-                        className="flex items-start gap-2 text-xs text-ink-600"
-                      >
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ink-300" />
-                        {reason}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
 
               {/* Tasks */}
               <div>
