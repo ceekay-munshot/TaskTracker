@@ -45,7 +45,6 @@ export function CommandCenter() {
   const stats = useMemo(() => {
     const wi = data.workItems;
     const active = wi.filter((w) => w.status !== 'Completed');
-    const demoReady = wi.filter((w) => derived.demoReadyItemIds.has(w.id));
     return {
       active,
       unassigned: wi.filter((w) => !w.ownerId && w.status !== 'Completed'),
@@ -55,10 +54,9 @@ export function CommandCenter() {
       inBuild: wi.filter((w) => w.currentStage === 'Claude Work'),
       feedbackPending: data.feedback.filter(isBacklogFeedback),
       pendingTransfers: data.transfers.filter((t) => t.status === 'Pending'),
-      demoReady,
       recordings: data.recordings,
     };
-  }, [data, derived]);
+  }, [data]);
 
   const pipelineData = useMemo(
     () =>
@@ -166,7 +164,6 @@ export function CommandCenter() {
       { label: 'In client meeting', value: stats.inMeeting.length },
       { label: 'In Claude build', value: stats.inBuild.length },
       { label: 'Pending transfers', value: stats.pendingTransfers.length },
-      { label: 'Demo-ready', value: stats.demoReady.length },
       { label: 'Feedback open', value: stats.feedbackPending.length },
       { label: 'Recordings', value: stats.recordings.length },
     ],
@@ -253,12 +250,6 @@ export function CommandCenter() {
           icon={ArrowLeftRight}
           color="amber"
           onClick={() => navigate('/transfers')}
-        />
-        <MetricCard
-          label="Demo-Ready"
-          value={stats.demoReady.length}
-          icon={CheckCircle2}
-          color="emerald"
         />
         <MetricCard
           label="Meeting Recordings"

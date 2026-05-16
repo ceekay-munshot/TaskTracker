@@ -37,7 +37,7 @@ import type { ExcelSheet, ExportColumn, PptSummary } from '@/utils/export';
 type WorkView = 'table' | 'kanban' | 'timeline';
 
 export function GlobalWorkTracker() {
-  const { data, derived, getMember, getClient, deleteAllWorkItems } = useStore();
+  const { data, getMember, getClient, deleteAllWorkItems } = useStore();
   const ui = useUI();
   const toast = useToast();
   const confirm = useConfirm();
@@ -111,11 +111,8 @@ export function GlobalWorkTracker() {
       ).length,
       pendingTransfers: filteredItems.filter((w) => w.hasPendingTransfer)
         .length,
-      demoReady: filteredItems.filter((w) =>
-        derived.demoReadyItemIds.has(w.id),
-      ).length,
     };
-  }, [filteredItems, derived]);
+  }, [filteredItems]);
 
   /* Ordered stage config — the funnel + kanban single source of truth. */
   const orderedStages = useMemo(
@@ -159,10 +156,6 @@ export function GlobalWorkTracker() {
       { header: 'Stage', value: (w) => w.currentStage },
       { header: 'Status', value: (w) => w.status },
       { header: 'Priority', value: (w) => w.priority },
-      {
-        header: 'Demo Readiness %',
-        value: (w) => derived.readinessByItem.get(w.id)?.percent ?? 0,
-      },
       { header: 'Progress', value: (w) => w.progress },
       { header: 'Start', value: (w) => w.startDate },
       { header: 'Due', value: (w) => w.dueDate },
@@ -211,7 +204,6 @@ export function GlobalWorkTracker() {
       { label: 'Blocked', value: stats.blocked },
       { label: 'Overdue', value: stats.overdue },
       { label: 'Pending transfers', value: stats.pendingTransfers },
-      { label: 'Demo-ready', value: stats.demoReady },
     ],
     charts: [
       {

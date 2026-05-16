@@ -252,10 +252,6 @@ export function Performance() {
           header: 'Recordings Handled',
           value: (r) => r.stats.recordingsHandled,
         },
-        {
-          header: 'Demo-Ready Projects',
-          value: (r) => r.stats.demoReadyProjects,
-        },
       ],
     };
     return [sheet as ExcelSheet<unknown>];
@@ -406,9 +402,6 @@ export function Performance() {
               ,{' '}
               <span className="font-bold text-ink-800">feedback closed</span>,{' '}
               <span className="font-bold text-ink-800">active progress</span>,{' '}
-              <span className="font-bold text-ink-800">project health</span>,{' '}
-              <span className="font-bold text-ink-800">demo readiness</span>{' '}
-              and{' '}
               <span className="font-bold text-ink-800">
                 client-meeting handling
               </span>
