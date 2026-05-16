@@ -158,7 +158,7 @@ export function MemberDetail() {
   /* Derived collections — all scoped to this member                   */
   /* ---------------------------------------------------------------- */
   const ownedWorkItems = useMemo(
-    () => data.workItems.filter((w) => w.ownerId === memberId),
+    () => data.workItems.filter((w) => w.ownerIds.includes(memberId ?? '')),
     [data.workItems, memberId],
   );
   const originalWorkItems = useMemo(
@@ -652,7 +652,7 @@ export function MemberDetail() {
             <button
               type="button"
               className="btn-primary"
-              onClick={() => ui.addWorkItem({ ownerId: member.id })}
+              onClick={() => ui.addWorkItem({ ownerIds: [member.id] })}
             >
               <Bot className="h-4 w-4" /> Add Dashboard/Agent
             </button>

@@ -167,17 +167,29 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
           {/* People */}
           <div className="flex flex-wrap gap-4">
             <div>
-              <p className="label-text">Current owner</p>
-              <div className="flex items-center gap-2">
-                <Avatar
-                  name={owner?.name ?? '?'}
-                  src={owner?.photoUrl}
-                  size="sm"
-                />
-                <span className="text-sm font-bold text-ink-800">
-                  {owner?.name ?? 'Unassigned'}
+              <p className="label-text">
+                {wi.ownerIds.length > 1 ? 'Current owners' : 'Current owner'}
+              </p>
+              {wi.ownerIds.length === 0 ? (
+                <span className="text-sm font-bold text-ink-400">
+                  Unassigned
                 </span>
-              </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-3">
+                  {wi.ownerIds.map((id) => {
+                    const m = getMember(id);
+                    if (!m) return null;
+                    return (
+                      <div key={id} className="flex items-center gap-2">
+                        <Avatar name={m.name} src={m.photoUrl} size="sm" />
+                        <span className="text-sm font-bold text-ink-800">
+                          {m.name}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             {originalOwner && originalOwner.id !== owner?.id && (
               <div>

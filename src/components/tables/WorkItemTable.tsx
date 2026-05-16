@@ -125,7 +125,11 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
         </thead>
         <tbody>
           {items.map((wi) => {
-            const owner = getMember(wi.ownerId);
+            const owners = wi.ownerIds
+              .map(getMember)
+              .filter((m): m is NonNullable<typeof m> => !!m);
+            const owner = owners[0];
+            const extraOwners = owners.length - 1;
             const clients = wi.clientIds.map(getClient).filter(Boolean);
             const primaryClient = clients[0];
             const extraClients = clients.length - 1;
@@ -202,7 +206,10 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
                     )}
                   </span>
                 </td>
-                <td className="px-2 py-2.5">
+                <td
+                  className="px-2 py-2.5"
+                  title={owners.map((o) => o.name).join(', ')}
+                >
                   <div className="flex items-center gap-1.5">
                     <Avatar
                       name={owner?.name ?? '?'}
@@ -212,6 +219,11 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
                     <div className="min-w-0">
                       <p className="truncate text-xs font-semibold text-ink-700">
                         {owner?.name ?? 'Unassigned'}
+                        {extraOwners > 0 && (
+                          <span className="ml-1 text-[10px] font-bold text-brand-600">
+                            +{extraOwners}
+                          </span>
+                        )}
                       </p>
                       {transferred && (
                         <p className="text-[10px] text-amber-600">

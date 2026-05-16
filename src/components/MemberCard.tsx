@@ -29,7 +29,7 @@ export function MemberCard({ member }: { member: TeamMember }) {
   const navigate = useNavigate();
   const { deleteTeamMember } = useStore();
 
-  const owned = data.workItems.filter((w) => w.ownerId === member.id);
+  const owned = data.workItems.filter((w) => w.ownerIds.includes(member.id));
   const activeWork = owned.filter((w) => w.status !== 'Completed').length;
   const completedWork = owned.filter((w) => w.status === 'Completed').length;
   const workload = derived.workloadByMember.get(member.id);

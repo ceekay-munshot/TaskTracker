@@ -75,7 +75,7 @@ export function CommandCenter() {
         .map((m) => ({
           label: m.name.split(' ')[0],
           active: data.workItems.filter(
-            (w) => w.ownerId === m.id && w.status !== 'Completed',
+            (w) => w.ownerIds.includes(m.id) && w.status !== 'Completed',
           ).length,
         }))
         .filter((d) => d.active > 0),

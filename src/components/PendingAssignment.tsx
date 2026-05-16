@@ -62,7 +62,7 @@ export function PendingAssignment() {
 
   const assignWork = (id: string, title: string, ownerId: string) => {
     if (!ownerId) return;
-    updateWorkItem(id, { ownerId });
+    updateWorkItem(id, { ownerIds: [ownerId] });
     toast.success(
       'Work assigned',
       `${title} → ${getMember(ownerId)?.name ?? 'team member'}`,
