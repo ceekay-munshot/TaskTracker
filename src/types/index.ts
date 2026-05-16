@@ -252,6 +252,9 @@ export interface WorkItem {
   clientMeetingDone: boolean;
   claudeWorkStarted: boolean;
   liveOnMunshot: boolean;
+  feedbackTaken: boolean;
+  improvementsInProgress: boolean;
+  dashboardFinalized: boolean;
   statusNote: string;
   statusNoteUpdatedAt: string | null;
   status: WorkItemStatus;
