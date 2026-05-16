@@ -12,6 +12,7 @@ interface MetricCardProps {
   hint?: string;
   sublabel?: string;
   onClick?: () => void;
+  active?: boolean;
   className?: string;
 }
 
@@ -23,6 +24,7 @@ export function MetricCard({
   hint,
   sublabel,
   onClick,
+  active = false,
   className,
 }: MetricCardProps) {
   const s = swatch(color);
@@ -34,8 +36,9 @@ export function MetricCard({
       whileTap={interactive ? { scale: 0.99 } : undefined}
       onClick={onClick}
       className={cn(
-        'card relative overflow-hidden p-4',
+        'card relative overflow-hidden p-4 transition',
         interactive && 'cursor-pointer card-hover',
+        active && 'ring-2 ring-brand-400 ring-offset-1',
         className,
       )}
     >
