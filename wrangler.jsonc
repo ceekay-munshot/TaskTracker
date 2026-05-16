@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "munshot-task-tracker",
+  "name": "tasktracker",
   "compatibility_date": "2026-05-14",
   "build": {
     "command": "npm run build"
