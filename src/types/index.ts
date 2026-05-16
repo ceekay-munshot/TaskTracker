@@ -71,6 +71,9 @@ export const WORKFLOW_STAGES = [
   'Client Meeting',
   'Claude Work',
   'Live on Munshot',
+  'Feedback',
+  'Improvements',
+  'Finalized',
 ] as const;
 export type WorkflowStage = (typeof WORKFLOW_STAGES)[number];
 

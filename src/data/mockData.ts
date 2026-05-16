@@ -58,6 +58,18 @@ const STAGE_META: Record<WorkflowStage, { short: string; description: string }> 
       short: 'Live',
       description: 'Deployed live on the Munshot platform.',
     },
+    'Feedback': {
+      short: 'Feedback',
+      description: 'Post-launch feedback collected from the client.',
+    },
+    'Improvements': {
+      short: 'Improvements',
+      description: 'Iterating on feedback right now.',
+    },
+    'Finalized': {
+      short: 'Finalized',
+      description: 'Everything wrapped — work is done.',
+    },
   };
 
 function buildStages(): WorkflowStageConfig[] {
@@ -892,8 +904,11 @@ const LEGACY_STAGE_MAP: Record<string, WorkflowStage> = {
   'Client Demo': 'Live on Munshot',
   'Client Feedback': 'Live on Munshot',
   'Improvement Backlog': 'Live on Munshot',
-  'Final Completion': 'Live on Munshot',
+  'Final Completion': 'Finalized',
   'Claude Work': 'Claude Work',
+  'Feedback': 'Feedback',
+  'Improvements': 'Improvements',
+  'Finalized': 'Finalized',
 };
 
 function mapLegacyStage(stage: string): WorkflowStage {
