@@ -78,15 +78,19 @@ export function WorkItemTable({ items }: { items: WorkItem[] }) {
     if (done) {
       updateWorkItem(wi.id, {
         status: 'Completed',
-        liveOnMunshot: true,
-        claudeWorkStarted: true,
         clientMeetingDone: true,
+        claudeWorkStarted: true,
+        liveOnMunshot: true,
+        feedbackTaken: true,
+        improvementsInProgress: true,
+        dashboardFinalized: true,
         progress: 100,
       });
       toast.success('Marked complete', wi.title);
     } else {
       updateWorkItem(wi.id, {
         status: 'In Progress',
+        dashboardFinalized: false,
         completionDate: null,
       });
       toast.info('Reopened', wi.title);
