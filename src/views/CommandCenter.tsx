@@ -45,9 +45,6 @@ export function CommandCenter() {
   const stats = useMemo(() => {
     const wi = data.workItems;
     const active = wi.filter((w) => w.status !== 'Completed');
-    const redHealth = wi.filter(
-      (w) => derived.healthByItem.get(w.id)?.score === 'Red',
-    );
     const demoReady = wi.filter((w) => derived.demoReadyItemIds.has(w.id));
     return {
       active,
@@ -58,7 +55,6 @@ export function CommandCenter() {
       inBuild: wi.filter((w) => w.currentStage === 'Claude Work'),
       feedbackPending: data.feedback.filter(isBacklogFeedback),
       pendingTransfers: data.transfers.filter((t) => t.status === 'Pending'),
-      redHealth,
       demoReady,
       recordings: data.recordings,
     };
@@ -167,7 +163,6 @@ export function CommandCenter() {
       { label: 'Active work', value: stats.active.length },
       { label: 'Live on Munshot', value: stats.live.length },
       { label: 'Blocked', value: stats.blocked.length },
-      { label: 'Red health', value: stats.redHealth.length },
       { label: 'In client meeting', value: stats.inMeeting.length },
       { label: 'In Claude build', value: stats.inBuild.length },
       { label: 'Pending transfers', value: stats.pendingTransfers.length },
@@ -258,12 +253,6 @@ export function CommandCenter() {
           icon={ArrowLeftRight}
           color="amber"
           onClick={() => navigate('/transfers')}
-        />
-        <MetricCard
-          label="Red Health"
-          value={stats.redHealth.length}
-          icon={AlertTriangle}
-          color="rose"
         />
         <MetricCard
           label="Demo-Ready"

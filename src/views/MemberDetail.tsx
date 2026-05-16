@@ -17,7 +17,6 @@ import {
   ClipboardList,
   Clock,
   Gauge,
-  Heart,
   Inbox,
   LayoutDashboard,
   Mail,
@@ -960,19 +959,6 @@ export function MemberDetail() {
                     value={performance.recordingsHandled}
                     icon={Video}
                     color="fuchsia"
-                  />
-                  <MiniStat
-                    label="Avg Health Points"
-                    value={performance.averageHealthPoints}
-                    icon={Heart}
-                    color={
-                      performance.averageHealthPoints >= 25
-                        ? 'rose'
-                        : performance.averageHealthPoints >= 12
-                          ? 'amber'
-                          : 'emerald'
-                    }
-                    hint="lower is healthier"
                   />
                   <MiniStat
                     label="Demo-ready Projects"

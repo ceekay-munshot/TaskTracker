@@ -253,10 +253,6 @@ export function Performance() {
           value: (r) => r.stats.recordingsHandled,
         },
         {
-          header: 'Avg Health Points',
-          value: (r) => r.stats.averageHealthPoints,
-        },
-        {
           header: 'Demo-Ready Projects',
           value: (r) => r.stats.demoReadyProjects,
         },
