@@ -257,9 +257,11 @@ export function WorkItemDetailDrawer({ workItemId, onClose }: Props) {
               value={
                 wi.status === 'Completed'
                   ? formatDate(wi.completionDate)
-                  : due < 0
-                    ? `${-due}d over`
-                    : `${due}d`
+                  : !wi.dueDate || Number.isNaN(due)
+                    ? '—'
+                    : due < 0
+                      ? `${-due}d over`
+                      : `${due}d`
               }
               icon={Clock}
               color={
