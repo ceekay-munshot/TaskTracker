@@ -446,54 +446,83 @@ export function WorkItemModal({ open, onClose, editing, prefill }: Props) {
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            <Checkpoint
-              icon={MessagesSquare}
-              tone="sky"
-              title="Client meeting done"
-              description="Requirements discussed and captured"
-              checked={draft.clientMeetingDone}
-              onChange={(v) => set({ clientMeetingDone: v })}
-            />
-            <Checkpoint
-              icon={Sparkles}
-              tone="indigo"
-              title="Claude work started"
-              description="Build is in progress on this deliverable"
-              checked={draft.claudeWorkStarted}
-              onChange={(v) => set({ claudeWorkStarted: v })}
-            />
-            <Checkpoint
-              icon={Rocket}
-              tone="emerald"
-              title="Live on Munshot"
-              description="Deployed and live for the client"
-              checked={draft.liveOnMunshot}
-              onChange={(v) => set({ liveOnMunshot: v })}
-            />
-            <Checkpoint
-              icon={Inbox}
-              tone="amber"
-              title="Took feedback from client"
-              description="Post-launch feedback collected and logged"
-              checked={draft.feedbackTaken}
-              onChange={(v) => set({ feedbackTaken: v })}
-            />
-            <Checkpoint
-              icon={Wrench}
-              tone="fuchsia"
-              title="Working on improvements"
-              description="Iterating on feedback right now"
-              checked={draft.improvementsInProgress}
-              onChange={(v) => set({ improvementsInProgress: v })}
-            />
-            <Checkpoint
-              icon={CheckCircle2}
-              tone="rose"
-              title="Finalized dashboard"
-              description="Everything wrapped — work is done"
-              checked={draft.dashboardFinalized}
-              onChange={(v) => set({ dashboardFinalized: v })}
-            />
+            {(() => {
+              const keys = [
+                'clientMeetingDone',
+                'claudeWorkStarted',
+                'liveOnMunshot',
+                'feedbackTaken',
+                'improvementsInProgress',
+                'dashboardFinalized',
+              ] as const;
+              const setCheckpoint = (idx: number, on: boolean) => {
+                setDraft((d) => {
+                  const patch: Partial<WorkItemInput> = {};
+                  keys.forEach((k, i) => {
+                    if (on) {
+                      // Reaching stage idx implies every stage before it
+                      if (i <= idx) patch[k] = true;
+                    } else {
+                      // Undoing stage idx means everything after it is undone too
+                      if (i >= idx) patch[k] = false;
+                    }
+                  });
+                  return { ...d, ...patch };
+                });
+              };
+              return (
+                <>
+                  <Checkpoint
+                    icon={MessagesSquare}
+                    tone="sky"
+                    title="Client meeting done"
+                    description="Requirements discussed and captured"
+                    checked={draft.clientMeetingDone}
+                    onChange={(v) => setCheckpoint(0, v)}
+                  />
+                  <Checkpoint
+                    icon={Sparkles}
+                    tone="indigo"
+                    title="Claude work started"
+                    description="Build is in progress on this deliverable"
+                    checked={draft.claudeWorkStarted}
+                    onChange={(v) => setCheckpoint(1, v)}
+                  />
+                  <Checkpoint
+                    icon={Rocket}
+                    tone="emerald"
+                    title="Live on Munshot"
+                    description="Deployed and live for the client"
+                    checked={draft.liveOnMunshot}
+                    onChange={(v) => setCheckpoint(2, v)}
+                  />
+                  <Checkpoint
+                    icon={Inbox}
+                    tone="amber"
+                    title="Took feedback from client"
+                    description="Post-launch feedback collected and logged"
+                    checked={draft.feedbackTaken}
+                    onChange={(v) => setCheckpoint(3, v)}
+                  />
+                  <Checkpoint
+                    icon={Wrench}
+                    tone="fuchsia"
+                    title="Working on improvements"
+                    description="Iterating on feedback right now"
+                    checked={draft.improvementsInProgress}
+                    onChange={(v) => setCheckpoint(4, v)}
+                  />
+                  <Checkpoint
+                    icon={CheckCircle2}
+                    tone="rose"
+                    title="Finalized dashboard"
+                    description="Everything wrapped — work is done"
+                    checked={draft.dashboardFinalized}
+                    onChange={(v) => setCheckpoint(5, v)}
+                  />
+                </>
+              );
+            })()}
           </div>
         </section>
 
